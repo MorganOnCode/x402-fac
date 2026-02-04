@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { ConfigSchema, type Config } from './schema.js';
 import { ConfigMissingError, ConfigParseError, ConfigInvalidError } from '../errors/index.js';
 
-export { Config } from './schema.js';
+export type { Config } from './schema.js';
 
 const DEFAULT_CONFIG_PATH = resolve(process.cwd(), 'config', 'config.json');
 

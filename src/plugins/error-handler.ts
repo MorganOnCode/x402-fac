@@ -19,6 +19,7 @@ interface ErrorResponse {
 const errorHandler: FastifyPluginCallback<ErrorHandlerOptions> = (fastify, options, done) => {
   const { isDev } = options;
 
+  // Handle thrown errors
   fastify.setErrorHandler((error: FastifyError, request, reply) => {
     const statusCode = error.statusCode ?? 500;
     const code = error.code ?? 'INTERNAL_ERROR';
@@ -46,6 +47,30 @@ const errorHandler: FastifyPluginCallback<ErrorHandlerOptions> = (fastify, optio
     };
 
     reply.status(statusCode).send(response);
+  });
+
+  // Handle 404 not found with consistent format
+  fastify.setNotFoundHandler((request, reply) => {
+    const response: ErrorResponse = {
+      error: {
+        code: 'NOT_FOUND',
+        message: `Route ${request.method}:${request.url} not found`,
+        statusCode: 404,
+      },
+      requestId: request.id,
+      timestamp: new Date().toISOString(),
+    };
+
+    request.log.warn(
+      {
+        method: request.method,
+        url: request.url,
+        requestId: request.id,
+      },
+      'Route not found'
+    );
+
+    reply.status(404).send(response);
   });
 
   done();
