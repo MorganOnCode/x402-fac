@@ -1,0 +1,41 @@
+# Dependabot configuration for automated security updates
+# Satisfies requirement FOUND-04: Dependency vulnerability scanning
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      # Group dev dependencies for fewer PRs
+      development-dependencies:
+        patterns:
+          - "@types/*"
+          - "vitest"
+          - "@vitest/*"
+          - "eslint*"
+          - "prettier"
+          - "typescript"
+          - "tsup"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group Fastify ecosystem updates
+      fastify-ecosystem:
+        patterns:
+          - "fastify"
+          - "@fastify/*"
+          - "fastify-*"
+        update-types:
+          - "minor"
+          - "patch"
+    # Security updates are always created immediately
+    # regardless of the schedule

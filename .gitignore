@@ -6,6 +6,7 @@ dist/
 
 # Environment and config (secrets)
 config.json
+config/config.json
 .env
 .env.*
 !.env.example
@@ -21,8 +22,12 @@ coverage/
 # macOS
 .DS_Store
 
+# Windows
+Thumbs.db
+
 # Logs
 *.log
+logs/
 
 # Test artifacts
 .vitest/
