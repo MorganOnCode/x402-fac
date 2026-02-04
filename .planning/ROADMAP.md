@@ -47,32 +47,32 @@ Decimal phases appear between their surrounding integers in numeric order.
 - TypeScript configuration (strict mode, path aliases, ES2022 target)
 - Package management with pnpm (faster, disk-efficient)
 - Directory structure: `src/`, `tests/`, `config/`, `docs/`
-- Build tooling with tsup (fast esbuild-based builds)
-- ESLint + Prettier for code quality (Airbnb or Standard config)
+- Build tooling with tsdown (fast Rolldown-based builds)
+- ESLint + Prettier for code quality (Airbnb config)
 - Git hooks with husky + lint-staged for pre-commit checks
 
 *Development Infrastructure:*
 - Testing framework with Vitest (fast, TypeScript-native)
-- Environment variable handling (dotenv + zod validation)
+- Configuration via JSON with Zod validation (not .env)
 - Development server with hot reload (tsx watch)
 - VS Code debug configuration (launch.json)
-- Docker setup for local development
+- Docker setup for dependencies (IPFS, Redis)
 
 *Server Foundation:*
 - HTTP server with Fastify (faster than Express, better TypeScript)
 - Middleware architecture (CORS, request ID, timing)
 - Error handling patterns (typed errors, consistent JSON responses)
-- Request/response validation with zod schemas
+- Request/response validation with Zod schemas
 
 *Observability:*
 - Structured logging with pino (JSON logs, Fastify default)
-- Configuration file support (JSON with zod schema validation)
+- Configuration file support (JSON with Zod schema validation)
 - Health check endpoint (/health with dependency status)
 
 *Security Baseline:*
-- Snyk/Dependabot integration for dependency scanning
-- Secret management patterns (.env.example, no secrets in code)
-- Input validation patterns established (zod on all inputs)
+- Dependabot integration for dependency scanning
+- Secret management patterns (config.json gitignored, no secrets in code)
+- Input validation patterns established (Zod on all inputs)
 - Security headers with @fastify/helmet
 - Sentry integration for error tracking
 
@@ -83,20 +83,24 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Server starts and reads configuration from validated JSON file
   5. GET /health returns 200 with server status and dependency checks
   6. Requests and responses are logged with timestamps and correlation IDs
-  7. Snyk/Dependabot reports zero high/critical vulnerabilities
+  7. Dependabot configured for weekly scans
   8. Pre-commit hooks run lint and type-check before allowing commit
 
 **Security Checks:**
-- [ ] Dependency scanning enabled (Snyk or Dependabot)
-- [ ] No secrets in repository (GitHub secret scanning)
+- [ ] Dependency scanning enabled (Dependabot)
+- [ ] No secrets in repository (config.json gitignored)
 - [ ] Security headers configured (helmet)
-- [ ] Input validation on all endpoints (zod)
-- [ ] Error responses don't leak internal details
+- [ ] Input validation on all endpoints (Zod)
+- [ ] Error responses don't leak internal details in production
 
-**Plans**: TBD
+**Plans**: 5 plans in 4 waves
 
 Plans:
-- [ ] 01-01: TBD
+- [ ] 01-01-PLAN.md — Project bootstrap (pnpm, TypeScript, ESLint, husky)
+- [ ] 01-02-PLAN.md — Testing infrastructure + Docker dev environment
+- [ ] 01-03-PLAN.md — Configuration system with Zod validation
+- [ ] 01-04-PLAN.md — HTTP server foundation (Fastify + plugins)
+- [ ] 01-05-PLAN.md — Health endpoint + Sentry + Dependabot
 
 ### Phase 2: Chain Provider
 **Goal**: Implement Cardano blockchain interaction with UTXO tracking and reservation
@@ -333,7 +337,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/? | Not started | - |
+| 1. Foundation | 0/5 | Planned | - |
 | 2. Chain Provider | 0/? | Not started | - |
 | 3. Verification | 0/? | Not started | - |
 | 4. Settlement | 0/? | Not started | - |
@@ -344,5 +348,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 ---
 *Roadmap created: 2026-02-04*
+*Phase 1 planned: 2026-02-04*
 *Depth: comprehensive (8 phases)*
 *Requirements: 27+ v1 mapped (foundation requirements added)*
