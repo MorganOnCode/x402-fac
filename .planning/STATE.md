@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-04)
 ## Current Position
 
 Phase: 1 of 8 (Foundation)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In progress
-Last activity: 2026-02-04 — Completed 01-02-PLAN.md (Test Infrastructure)
+Last activity: 2026-02-04 — Completed 01-04-PLAN.md (HTTP Server Foundation)
 
-Progress: [███░░░░░░░] 60% of phase 1 (plans 01, 02, 03 complete)
+Progress: [████░░░░░░] 80% of phase 1 (plans 01, 02, 03, 04 complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: 7 min
-- Total execution time: 0.37 hours
+- Total execution time: 0.45 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 3 | 22 min | 7 min |
+| 01-foundation | 4 | 27 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 8 min, 8 min, 6 min
+- Last 5 plans: 8 min, 8 min, 6 min, 5 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -51,6 +51,8 @@ Recent decisions affecting current work:
 | Error code property checking | 01-03 | Use error.code instead of message matching for reliable identification |
 | v8 coverage provider | 01-02 | Faster native coverage over istanbul |
 | Docker for deps only | 01-02 | App runs locally with hot reload, containers for IPFS/Redis |
+| setNotFoundHandler for 404s | 01-04 | Fastify default 404 format doesn't match our error spec |
+| Type-only re-exports | 01-04 | ESM requires `export type { X }` for TypeScript-only exports |
 
 ### Pending Todos
 
@@ -58,10 +60,10 @@ None yet.
 
 ### Blockers/Concerns
 
-None - testing infrastructure and configuration system complete.
+None - HTTP server foundation complete with security headers and error handling.
 
 ## Session Continuity
 
-Last session: 2026-02-04T12:57:01Z
-Stopped at: Completed 01-02-PLAN.md (Test Infrastructure)
+Last session: 2026-02-04T13:05:00Z
+Stopped at: Completed 01-04-PLAN.md (HTTP Server Foundation)
 Resume file: None
