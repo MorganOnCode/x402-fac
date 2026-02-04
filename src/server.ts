@@ -8,6 +8,7 @@ import fastify from 'fastify';
 import type { Config } from './config/index.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { requestLoggerPlugin } from './plugins/request-logger.js';
+import { healthRoutesPlugin } from './routes/health.js';
 
 // Import types to ensure augmentation is loaded
 import './types/index.js';
@@ -61,6 +62,9 @@ export async function createServer(options: CreateServerOptions): Promise<Fastif
   // Custom plugins
   await server.register(errorHandlerPlugin, { isDev });
   await server.register(requestLoggerPlugin, { isDev });
+
+  // Routes
+  await server.register(healthRoutesPlugin);
 
   return server;
 }
