@@ -26,3 +26,4 @@ coverage/
 
 # Test artifacts
 .vitest/
+tests/fixtures/
