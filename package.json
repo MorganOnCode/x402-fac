@@ -16,7 +16,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --inspect src/index.ts",
     "build": "tsup",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
