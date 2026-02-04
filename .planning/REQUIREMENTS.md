@@ -7,6 +7,14 @@
 
 Requirements for initial release. Each maps to roadmap phases.
 
+### Foundation
+
+- [ ] **FOUND-01**: Project uses TypeScript with strict mode and proper tooling (pnpm, tsup, ESLint, Prettier)
+- [ ] **FOUND-02**: Project has testing infrastructure with Vitest and coverage reporting
+- [ ] **FOUND-03**: Project has pre-commit hooks enforcing lint and type-check
+- [ ] **FOUND-04**: Project has dependency vulnerability scanning (Snyk or Dependabot)
+- [ ] **FOUND-05**: Project has error tracking integration (Sentry)
+
 ### Protocol
 
 - [ ] **PROT-01**: Facilitator exposes `/verify` endpoint that validates payment signatures and payer balance
@@ -113,39 +121,44 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROT-01 | TBD | Pending |
-| PROT-02 | TBD | Pending |
-| PROT-03 | TBD | Pending |
-| PROT-04 | TBD | Pending |
-| PROT-05 | TBD | Pending |
-| CARD-01 | TBD | Pending |
-| CARD-02 | TBD | Pending |
-| CARD-03 | TBD | Pending |
-| CARD-04 | TBD | Pending |
-| CARD-05 | TBD | Pending |
-| CARD-06 | TBD | Pending |
-| SECU-01 | TBD | Pending |
-| SECU-02 | TBD | Pending |
-| SECU-03 | TBD | Pending |
-| SECU-04 | TBD | Pending |
-| STOR-01 | TBD | Pending |
-| STOR-02 | TBD | Pending |
-| STOR-03 | TBD | Pending |
-| STOR-04 | TBD | Pending |
-| STOR-05 | TBD | Pending |
-| OPER-01 | TBD | Pending |
-| OPER-02 | TBD | Pending |
-| OPER-03 | TBD | Pending |
-| OPER-04 | TBD | Pending |
-| DOCS-01 | TBD | Pending |
-| DOCS-02 | TBD | Pending |
-| DOCS-03 | TBD | Pending |
+| FOUND-01 | Phase 1 | Pending |
+| FOUND-02 | Phase 1 | Pending |
+| FOUND-03 | Phase 1 | Pending |
+| FOUND-04 | Phase 1 | Pending |
+| FOUND-05 | Phase 1 | Pending |
+| PROT-01 | Phase 3 | Pending |
+| PROT-02 | Phase 4 | Pending |
+| PROT-03 | Phase 8 | Pending |
+| PROT-04 | Phase 3 | Pending |
+| PROT-05 | Phase 3 | Pending |
+| CARD-01 | Phase 2 | Pending |
+| CARD-02 | Phase 2 | Pending |
+| CARD-03 | Phase 6 | Pending |
+| CARD-04 | Phase 5 | Pending |
+| CARD-05 | Phase 2 | Pending |
+| CARD-06 | Phase 2 | Pending |
+| SECU-01 | Phase 3 | Pending |
+| SECU-02 | Phase 3 | Pending |
+| SECU-03 | Phase 3 | Pending |
+| SECU-04 | Phase 7 | Pending |
+| STOR-01 | Phase 7 | Pending |
+| STOR-02 | Phase 7 | Pending |
+| STOR-03 | Phase 7 | Pending |
+| STOR-04 | Phase 7 | Pending |
+| STOR-05 | Phase 7 | Pending |
+| OPER-01 | Phase 1 | Pending |
+| OPER-02 | Phase 1 | Pending |
+| OPER-03 | Phase 1 | Pending |
+| OPER-04 | Phase 4 | Pending |
+| DOCS-01 | Phase 8 | Pending |
+| DOCS-02 | Phase 8 | Pending |
+| DOCS-03 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 27 total
-- Mapped to phases: 0
-- Unmapped: 27 (will be mapped during roadmap creation)
+- v1 requirements: 32 total
+- Mapped to phases: 32
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-04*
-*Last updated: 2026-02-04 after initial definition*
+*Last updated: 2026-02-04 after roadmap creation*
