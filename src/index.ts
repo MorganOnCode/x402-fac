@@ -1,9 +1,13 @@
 import { loadConfig } from './config/index.js';
+import { initSentry } from './instrument.js';
 import { createServer } from './server.js';
 
 async function main(): Promise<void> {
   // Load and validate config (fails fast if invalid)
   const config = loadConfig();
+
+  // Initialize Sentry before anything else
+  initSentry(config.sentry?.dsn, config.env);
 
   // Create server
   const server = await createServer({ config });

@@ -1,6 +1,8 @@
 import type { FastifyPluginCallback, FastifyError } from 'fastify';
 import fp from 'fastify-plugin';
 
+import { Sentry } from '../instrument.js';
+
 interface ErrorHandlerOptions {
   isDev: boolean;
 }
@@ -33,6 +35,17 @@ const errorHandler: FastifyPluginCallback<ErrorHandlerOptions> = (fastify, optio
       },
       'Request error'
     );
+
+    // Capture server errors in Sentry
+    if (statusCode >= 500) {
+      Sentry.captureException(error, {
+        extra: {
+          requestId: request.id,
+          url: request.url,
+          method: request.method,
+        },
+      });
+    }
 
     const response: ErrorResponse = {
       error: {
