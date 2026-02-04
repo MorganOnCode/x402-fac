@@ -1,0 +1,30 @@
+# Development dependencies - IPFS and Redis
+# App runs locally with hot reload, containers provide services
+
+services:
+  ipfs:
+    image: ipfs/kubo:latest
+    container_name: x402-ipfs
+    ports:
+      - "4001:4001"      # P2P swarm
+      - "5001:5001"      # HTTP API
+      - "8080:8080"      # Gateway
+    volumes:
+      - ipfs_data:/data/ipfs
+    environment:
+      - IPFS_PATH=/data/ipfs
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: x402-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+volumes:
+  ipfs_data:
+  redis_data:
