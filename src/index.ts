@@ -1,1 +1,3 @@
-console.log('x402-fac starting...');
+// Missing semicolon to test lint hook
+const x = 'test';
+console.log(x);
