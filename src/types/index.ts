@@ -1,2 +1,14 @@
 // x402-fac type definitions
-export {};
+
+import type { Config } from '../config/index.js';
+
+export interface ServerOptions {
+  config: Config;
+}
+
+// Augment Fastify types
+declare module 'fastify' {
+  interface FastifyInstance {
+    config: Config;
+  }
+}
