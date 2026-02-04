@@ -9,11 +9,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Foundation
 
-- [ ] **FOUND-01**: Project uses TypeScript with strict mode and proper tooling (pnpm, tsup, ESLint, Prettier)
-- [ ] **FOUND-02**: Project has testing infrastructure with Vitest and coverage reporting
-- [ ] **FOUND-03**: Project has pre-commit hooks enforcing lint and type-check
-- [ ] **FOUND-04**: Project has dependency vulnerability scanning (Snyk or Dependabot)
-- [ ] **FOUND-05**: Project has error tracking integration (Sentry)
+- [x] **FOUND-01**: Project uses TypeScript with strict mode and proper tooling (pnpm, tsup, ESLint, Prettier)
+- [x] **FOUND-02**: Project has testing infrastructure with Vitest and coverage reporting
+- [x] **FOUND-03**: Project has pre-commit hooks enforcing lint and type-check
+- [x] **FOUND-04**: Project has dependency vulnerability scanning (Snyk or Dependabot)
+- [x] **FOUND-05**: Project has error tracking integration (Sentry)
 
 ### Protocol
 
@@ -49,9 +49,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Operations
 
-- [ ] **OPER-01**: Facilitator supports JSON configuration file for server settings
-- [ ] **OPER-02**: Facilitator exposes `/health` endpoint for monitoring
-- [ ] **OPER-03**: Facilitator logs requests and responses for debugging
+- [x] **OPER-01**: Facilitator supports JSON configuration file for server settings
+- [x] **OPER-02**: Facilitator exposes `/health` endpoint for monitoring
+- [x] **OPER-03**: Facilitator logs requests and responses for debugging
 - [ ] **OPER-04**: Facilitator includes security testing and verification proofs in settlement
 
 ### Documentation
@@ -121,11 +121,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 1 | Pending |
-| FOUND-02 | Phase 1 | Pending |
-| FOUND-03 | Phase 1 | Pending |
-| FOUND-04 | Phase 1 | Pending |
-| FOUND-05 | Phase 1 | Pending |
+| FOUND-01 | Phase 1 | Complete |
+| FOUND-02 | Phase 1 | Complete |
+| FOUND-03 | Phase 1 | Complete |
+| FOUND-04 | Phase 1 | Complete |
+| FOUND-05 | Phase 1 | Complete |
 | PROT-01 | Phase 3 | Pending |
 | PROT-02 | Phase 4 | Pending |
 | PROT-03 | Phase 8 | Pending |
@@ -146,9 +146,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STOR-03 | Phase 7 | Pending |
 | STOR-04 | Phase 7 | Pending |
 | STOR-05 | Phase 7 | Pending |
-| OPER-01 | Phase 1 | Pending |
-| OPER-02 | Phase 1 | Pending |
-| OPER-03 | Phase 1 | Pending |
+| OPER-01 | Phase 1 | Complete |
+| OPER-02 | Phase 1 | Complete |
+| OPER-03 | Phase 1 | Complete |
 | OPER-04 | Phase 4 | Pending |
 | DOCS-01 | Phase 8 | Pending |
 | DOCS-02 | Phase 8 | Pending |

@@ -25,7 +25,7 @@ Security is enforced through automated tooling integrated into the development w
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Project scaffolding, tooling, security baseline, and development infrastructure
+- [x] **Phase 1: Foundation** - Project scaffolding, tooling, security baseline, and development infrastructure
 - [ ] **Phase 2: Chain Provider** - Cardano blockchain interaction and UTXO state management
 - [ ] **Phase 3: Verification** - Payment signature verification and security enforcement
 - [ ] **Phase 4: Settlement** - On-chain payment submission with immediate settlement
@@ -87,20 +87,20 @@ Decimal phases appear between their surrounding integers in numeric order.
   8. Pre-commit hooks run lint and type-check before allowing commit
 
 **Security Checks:**
-- [ ] Dependency scanning enabled (Dependabot)
-- [ ] No secrets in repository (config.json gitignored)
-- [ ] Security headers configured (helmet)
-- [ ] Input validation on all endpoints (Zod)
-- [ ] Error responses don't leak internal details in production
+- [x] Dependency scanning enabled (Dependabot)
+- [x] No secrets in repository (config.json gitignored)
+- [x] Security headers configured (helmet)
+- [x] Input validation on all endpoints (Zod)
+- [x] Error responses don't leak internal details in production
 
 **Plans**: 5 plans in 4 waves
 
 Plans:
-- [ ] 01-01-PLAN.md — Project bootstrap (pnpm, TypeScript, ESLint, husky)
-- [ ] 01-02-PLAN.md — Testing infrastructure + Docker dev environment
-- [ ] 01-03-PLAN.md — Configuration system with Zod validation
-- [ ] 01-04-PLAN.md — HTTP server foundation (Fastify + plugins)
-- [ ] 01-05-PLAN.md — Health endpoint + Sentry + Dependabot
+- [x] 01-01-PLAN.md — Project bootstrap (pnpm, TypeScript, ESLint, husky)
+- [x] 01-02-PLAN.md — Testing infrastructure + Docker dev environment
+- [x] 01-03-PLAN.md — Configuration system with Zod validation
+- [x] 01-04-PLAN.md — HTTP server foundation (Fastify + plugins)
+- [x] 01-05-PLAN.md — Health endpoint + Sentry + Dependabot
 
 ### Phase 2: Chain Provider
 **Goal**: Implement Cardano blockchain interaction with UTXO tracking and reservation
@@ -337,7 +337,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/5 | Planned | - |
+| 1. Foundation | 5/5 | Complete | 2026-02-04 |
 | 2. Chain Provider | 0/? | Not started | - |
 | 3. Verification | 0/? | Not started | - |
 | 4. Settlement | 0/? | Not started | - |
