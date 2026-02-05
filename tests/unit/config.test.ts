@@ -8,6 +8,12 @@ import { loadConfig } from '@/config/index.js';
 const TEST_CONFIG_DIR = join(process.cwd(), 'tests', 'fixtures');
 const TEST_CONFIG_PATH = join(TEST_CONFIG_DIR, 'test-config.json');
 
+// Minimal chain config required by schema (sensitive fields use test values)
+const minimalChainConfig = {
+  blockfrost: { projectId: 'test-project-id' },
+  facilitator: { seedPhrase: 'test seed phrase for unit testing only' },
+};
+
 describe('Config Loading', () => {
   beforeEach(() => {
     if (!existsSync(TEST_CONFIG_DIR)) {
@@ -22,19 +28,28 @@ describe('Config Loading', () => {
   });
 
   it('should load valid config with defaults', () => {
-    writeFileSync(TEST_CONFIG_PATH, JSON.stringify({}));
+    writeFileSync(TEST_CONFIG_PATH, JSON.stringify({ chain: minimalChainConfig }));
     const config = loadConfig(TEST_CONFIG_PATH);
 
     expect(config.server.host).toBe('0.0.0.0');
     expect(config.server.port).toBe(3000);
     expect(config.logging.level).toBe('info');
     expect(config.env).toBe('development');
+    // Chain defaults
+    expect(config.chain.network).toBe('Preview');
+    expect(config.chain.blockfrost.tier).toBe('free');
+    expect(config.chain.cache.utxoTtlSeconds).toBe(60);
+    expect(config.chain.reservation.ttlSeconds).toBe(120);
+    expect(config.chain.reservation.maxConcurrent).toBe(20);
+    expect(config.chain.redis.host).toBe('127.0.0.1');
+    expect(config.chain.redis.port).toBe(6379);
   });
 
   it('should override defaults with provided values', () => {
     const customConfig = {
       server: { port: 8080 },
       logging: { level: 'debug' },
+      chain: minimalChainConfig,
     };
     writeFileSync(TEST_CONFIG_PATH, JSON.stringify(customConfig));
     const config = loadConfig(TEST_CONFIG_PATH);
@@ -65,6 +80,7 @@ describe('Config Loading', () => {
   it('should throw ConfigInvalidError for invalid schema', () => {
     const invalidConfig = {
       server: { port: 'not a number' },
+      chain: minimalChainConfig,
     };
     writeFileSync(TEST_CONFIG_PATH, JSON.stringify(invalidConfig));
     try {
@@ -76,7 +92,7 @@ describe('Config Loading', () => {
   });
 
   it('should validate port range', () => {
-    const invalidPort = { server: { port: 70000 } };
+    const invalidPort = { server: { port: 70000 }, chain: minimalChainConfig };
     writeFileSync(TEST_CONFIG_PATH, JSON.stringify(invalidPort));
     try {
       loadConfig(TEST_CONFIG_PATH);
@@ -87,13 +103,62 @@ describe('Config Loading', () => {
   });
 
   it('should validate logging level enum', () => {
-    const invalidLevel = { logging: { level: 'verbose' } };
+    const invalidLevel = { logging: { level: 'verbose' }, chain: minimalChainConfig };
     writeFileSync(TEST_CONFIG_PATH, JSON.stringify(invalidLevel));
     try {
       loadConfig(TEST_CONFIG_PATH);
       expect.fail('Expected error to be thrown');
     } catch (error) {
       expect((error as { code: string }).code).toBe('CONFIG_INVALID');
+    }
+  });
+
+  it('should reject config without chain section', () => {
+    writeFileSync(TEST_CONFIG_PATH, JSON.stringify({}));
+    try {
+      loadConfig(TEST_CONFIG_PATH);
+      expect.fail('Expected error to be thrown');
+    } catch (error) {
+      expect((error as { code: string }).code).toBe('CONFIG_INVALID');
+    }
+  });
+
+  it('should reject chain config without facilitator credentials', () => {
+    const noCredentials = {
+      chain: { blockfrost: { projectId: 'test123' }, facilitator: {} },
+    };
+    writeFileSync(TEST_CONFIG_PATH, JSON.stringify(noCredentials));
+    try {
+      loadConfig(TEST_CONFIG_PATH);
+      expect.fail('Expected error to be thrown');
+    } catch (error) {
+      expect((error as { code: string }).code).toBe('CONFIG_INVALID');
+    }
+  });
+
+  it('should reject mainnet without MAINNET=true env var', () => {
+    const mainnetConfig = {
+      chain: {
+        network: 'Mainnet',
+        blockfrost: { projectId: 'mainnet-key' },
+        facilitator: { seedPhrase: 'test seed phrase' },
+      },
+    };
+    // Ensure MAINNET is not set
+    const original = process.env.MAINNET;
+    delete process.env.MAINNET;
+
+    writeFileSync(TEST_CONFIG_PATH, JSON.stringify(mainnetConfig));
+    try {
+      loadConfig(TEST_CONFIG_PATH);
+      expect.fail('Expected error to be thrown');
+    } catch (error) {
+      expect((error as { code: string }).code).toBe('CONFIG_INVALID');
+    } finally {
+      // Restore env
+      if (original !== undefined) {
+        process.env.MAINNET = original;
+      }
     }
   });
 });

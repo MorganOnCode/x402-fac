@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { ChainConfigSchema } from '../chain/config.js';
+
 export const ConfigSchema = z.object({
   server: z
     .object({
@@ -25,6 +27,9 @@ export const ConfigSchema = z.object({
 
   // Environment mode
   env: z.enum(['development', 'production', 'test']).default('development'),
+
+  // Chain provider configuration (Blockfrost, network, cache, reservation, Redis)
+  chain: ChainConfigSchema,
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

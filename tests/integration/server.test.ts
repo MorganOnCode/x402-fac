@@ -11,6 +11,14 @@ describe('Server Integration', () => {
     server: { host: '0.0.0.0', port: 0 }, // Port 0 = random available port
     logging: { level: 'error', pretty: false }, // Quiet logs in tests
     env: 'test',
+    chain: {
+      network: 'Preview',
+      blockfrost: { projectId: 'test-project-id', tier: 'free' },
+      facilitator: { seedPhrase: 'test seed phrase for integration testing only' },
+      cache: { utxoTtlSeconds: 60 },
+      reservation: { ttlSeconds: 120, maxConcurrent: 20 },
+      redis: { host: '127.0.0.1', port: 6379 },
+    },
   };
 
   beforeAll(async () => {
