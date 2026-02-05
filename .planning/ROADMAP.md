@@ -130,10 +130,14 @@ Plans:
 - [ ] Rate limiting prevents API key abuse
 - [ ] Error messages don't expose API key or internal state
 
-**Plans**: TBD
+**Plans**: 5 plans in 4 waves
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md — Chain types, domain errors, and config schema extension
+- [ ] 02-02-PLAN.md — Blockfrost client with exponential backoff retry (TDD)
+- [ ] 02-03-PLAN.md — Redis client, two-layer UTXO cache, and health check wiring
+- [ ] 02-04-PLAN.md — UTXO reservation system with TTL (TDD)
+- [ ] 02-05-PLAN.md — Lucid provider, ChainProvider orchestrator, and server integration
 
 ### Phase 3: Verification
 **Goal**: Validate payment signatures and enforce security against replay attacks
@@ -338,7 +342,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-02-04 |
-| 2. Chain Provider | 0/? | Not started | - |
+| 2. Chain Provider | 0/5 | Not started | - |
 | 3. Verification | 0/? | Not started | - |
 | 4. Settlement | 0/? | Not started | - |
 | 5. Stablecoins | 0/? | Not started | - |
@@ -349,5 +353,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 ---
 *Roadmap created: 2026-02-04*
 *Phase 1 planned: 2026-02-04*
+*Phase 2 planned: 2026-02-05*
 *Depth: comprehensive (8 phases)*
 *Requirements: 27+ v1 mapped (foundation requirements added)*
