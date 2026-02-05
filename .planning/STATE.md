@@ -5,22 +5,22 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 2 complete -- ready for Phase 3
+**Current focus:** Phase 2 complete (including gap closure) -- ready for Phase 3
 
 ## Current Position
 
 Phase: 2 of 8 (Chain Provider)
-Plan: 5 of 5 in phase 2
+Plan: 6 of 6 in phase 2 (gap closure complete)
 Status: Phase complete
-Last activity: 2026-02-05 - Completed 02-05-PLAN.md (ChainProvider orchestrator + server integration)
+Last activity: 2026-02-05 - Completed 02-06-PLAN.md (libsodium ESM fix, gap closure)
 
-Progress: [██████████░░░░░░░░░░] 50% overall (10/20 plans complete)
-Phase 2: [██████████] 5/5 plans complete
+Progress: [███████████░░░░░░░░░] 52% overall (11/21 plans complete)
+Phase 2: [██████████] 6/6 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 5 min
 - Total execution time: 0.8 hours
 
@@ -29,11 +29,11 @@ Phase 2: [██████████] 5/5 plans complete
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5 | 30 min | 6 min |
-| 02-chain-provider | 5 | 29 min | 6 min |
+| 02-chain-provider | 6 | 31 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 6 min, 6 min, 4 min, 9 min
-- Trend: Stable (02-05 longer due to integration complexity)
+- Last 5 plans: 6 min, 6 min, 4 min, 9 min, 2 min
+- Trend: Stable (02-06 fast -- single override fix)
 
 *Updated after each plan completion*
 
@@ -78,6 +78,7 @@ Recent decisions affecting current work:
 | Min UTXO floor at 1 ADA | 02-05 | Practical minimum on Cardano regardless of calculation |
 | Chain init failure prevents startup | 02-05 | Facilitator useless without chain access, fail fast |
 | Class-based ioredis mock for integration | 02-05 | vi.fn() doesn't work as constructor, class mock required |
+| Override-only libsodium fix | 02-06 | Pin libsodium-wrappers-sumo@0.8.2 via pnpm.overrides, no upstream upgrades |
 
 ### Pending Todos
 
@@ -85,12 +86,12 @@ None currently.
 
 ### Blockers/Concerns
 
-None - Phase 2 complete. Ready for Phase 3 (Verification Layer).
+None - Phase 2 complete (including gap closure). Ready for Phase 3 (Verification Layer).
 
 ## Session Continuity
 
-Last session: 2026-02-05T02:19:59Z
-Stopped at: Completed 02-05-PLAN.md (ChainProvider orchestrator + server integration)
+Last session: 2026-02-05T04:53:33Z
+Stopped at: Completed 02-06-PLAN.md (libsodium ESM fix, gap closure)
 Resume file: None
 
 ## Phase 1 Completion Summary
@@ -118,6 +119,7 @@ Phase 2 built the complete Cardano chain provider layer:
 - **02-03**: Redis client factory (ioredis, lazy connect, retry), two-layer UTXO cache (L1 Map + L2 Redis), BigInt serialization, real Redis health check
 - **02-04**: UTXO reservation system (Map + Redis, TTL expiry, concurrent cap, releaseAll, crash recovery via loadFromRedis)
 - **02-05**: ChainProvider orchestrator (cache-first queries, Lucid Evolution, min UTXO), server lifecycle integration
+- **02-06**: libsodium-wrappers-sumo ESM fix (pnpm override 0.7.16 -> 0.8.2, gap closure)
 
 Key artifacts for Phase 3:
 - `src/chain/index.ts` - Barrel exports for entire chain module
