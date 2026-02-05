@@ -29,6 +29,15 @@ export const ServerStartError = createError<[string]>(
 // Generic internal error
 export const InternalError = createError<[string]>('INTERNAL_ERROR', 'Internal error: %s', 500);
 
+// Chain provider errors (CHAIN_*) - re-exported from chain domain
+export {
+  ChainRateLimitedError,
+  ChainConnectionError,
+  ChainUtxoExhaustedError,
+  ChainTransactionError,
+  ChainNetworkMismatchError,
+} from '../chain/errors.js';
+
 // Type for all application errors
 export type AppError =
   | typeof ConfigInvalidError
