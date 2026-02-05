@@ -8,11 +8,23 @@ An x402 payment facilitator for Cardano paired with a file storage service. User
 
 A working x402 payment flow on Cardano that I understand end-to-end — from signature verification to on-chain settlement — that I can build more sophisticated applications on top of.
 
+## Protocol
+
+**x402 Protocol Version: V2** (pinned 2026-02-05)
+
+Using x402 v2 protocol with CAIP-2 network identifiers, `PaymentRequirements` with `extra` bag, and `accepted` field in payment payload. V1 backward compatibility is not a goal — Cardano is a new chain for x402 and starts fresh on V2.
+
 ## Requirements
 
 ### Validated
 
 (None yet — ship to validate)
+
+### Infrastructure Complete
+
+- [x] Facilitator queries and tracks Cardano UTXO state (Phase 2)
+- [x] UTXOs can be reserved to prevent contention (Phase 2)
+- [x] Blockfrost API key stored securely and never logged (Phase 2)
 
 ### Active
 
@@ -68,11 +80,22 @@ A working x402 payment flow on Cardano that I understand end-to-end — from sig
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Cardano-first (not EVM) | Ecosystem preference, Midnight alignment, less explored territory | — Pending |
-| Pay-to-upload model | Covers storage costs, simpler economics, enables free content distribution | — Pending |
-| Abstract storage layer | Flexibility to swap IPFS for Arweave/Walrus later without rewrite | — Pending |
-| Support ADA + stablecoins | Flexibility in payment (native token simplicity + stable pricing) | — Pending |
-| Research before build | Understand Patrick Tobler/FluxPoint work before reinventing | — Pending |
+| x402 Protocol V2 | Cardano is new to x402, no V1 legacy to support | Pinned V2, CAIP-2 network IDs |
+| Cardano-first (not EVM) | Ecosystem preference, Midnight alignment, less explored territory | Confirmed |
+| Pay-to-upload model | Covers storage costs, simpler economics, enables free content distribution | Confirmed |
+| Abstract storage layer | Flexibility to swap IPFS for Arweave/Walrus later without rewrite | Confirmed |
+| Support ADA + stablecoins | Flexibility in payment (native token simplicity + stable pricing) | Confirmed |
+| tsup over tsdown | rolldown native bindings failed on Darwin arm64 | Phase 1 |
+| Zod v4 config validation | Runtime schema validation with factory defaults for nested objects | Phase 1 |
+| Fastify server factory | Dependency injection pattern, clean separation of concerns | Phase 1 |
+| Docker for deps only | App runs locally with hot reload, containers for IPFS/Redis | Phase 1 |
+| bigint for lovelace | Cardano lovelace can exceed 2^53, prevents precision loss | Phase 2 |
+| ioredis with lazyConnect | Explicit connection control, caller decides when to connect | Phase 2 |
+| Two-layer UTXO cache | L1 in-memory Map + L2 Redis, cache-first query strategy | Phase 2 |
+| Mainnet env var guardrail | Fail-safe prevents accidental mainnet usage during development | Phase 2 |
+| Override-only libsodium fix | Pin libsodium-wrappers-sumo@0.8.2 for ESM compat | Phase 2 |
+
+*Full decision log with rationale: see STATE.md (31 decisions)*
 
 ---
-*Last updated: 2026-02-04 after initialization*
+*Last updated: 2026-02-05 after Phase 2 completion and audit review*

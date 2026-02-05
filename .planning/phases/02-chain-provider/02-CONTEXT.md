@@ -1,7 +1,7 @@
 # Phase 2: Chain Provider - Context
 
 **Gathered:** 2026-02-04
-**Status:** Ready for planning
+**Status:** Complete (all discretion items resolved in 02-RESEARCH.md and implemented code)
 
 <domain>
 ## Phase Boundary
@@ -37,15 +37,16 @@ Implement Cardano blockchain interaction via Blockfrost with UTXO tracking, rese
 - Include step-by-step Blockfrost registration and API key setup guide
 - Dev/test mode for Blockfrost responses: Claude's discretion (mock for tests vs real for dev)
 
-### Claude's Discretion
-- API key management strategy (single key vs per-network keys)
-- Cache invalidation trigger details
-- UTXO cache scope (facilitator-only or broader)
-- Reservation TTL duration
-- Contention handling strategy
-- Reservation persistence model
-- Concurrent reservation limits
-- Test mocking approach for Blockfrost
+### Claude's Discretion (All Resolved)
+*All items below were resolved in 02-RESEARCH.md and implemented. See STATE.md for rationale.*
+- ~~API key management strategy~~ → Single key per network, stored in config
+- ~~Cache invalidation trigger details~~ → L1 cleared on invalidateAll, L2 expires via Redis TTL
+- ~~UTXO cache scope~~ → Facilitator address only (cache-first query)
+- ~~Reservation TTL duration~~ → 120s default (configurable, covers ~6 blocks)
+- ~~Contention handling strategy~~ → Reject-immediately with CHAIN_UTXO_EXHAUSTED (503)
+- ~~Reservation persistence model~~ → In-memory Map + Redis persistence, loadFromRedis at startup
+- ~~Concurrent reservation limits~~ → 20 max (configurable)
+- ~~Test mocking approach~~ → Interface-based DI with vi.fn(), class-based mocks for constructors
 
 </decisions>
 

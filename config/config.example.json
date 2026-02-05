@@ -11,5 +11,26 @@
     "dsn": "https://your-sentry-dsn@sentry.io/project-id",
     "environment": "development"
   },
-  "env": "development"
+  "env": "development",
+  "chain": {
+    "network": "Preview",
+    "blockfrost": {
+      "projectId": "your-blockfrost-preview-project-id",
+      "tier": "free"
+    },
+    "facilitator": {
+      "seedPhrase": "your 24-word seed phrase here"
+    },
+    "cache": {
+      "utxoTtlSeconds": 60
+    },
+    "reservation": {
+      "ttlSeconds": 120,
+      "maxConcurrent": 20
+    },
+    "redis": {
+      "host": "127.0.0.1",
+      "port": 6379
+    }
+  }
 }
