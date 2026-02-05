@@ -130,7 +130,7 @@ Plans:
 - [ ] Rate limiting prevents API key abuse
 - [ ] Error messages don't expose API key or internal state
 
-**Plans**: 5 plans in 4 waves
+**Plans**: 6 plans (5 core + 1 gap closure)
 
 Plans:
 - [x] 02-01-PLAN.md — Chain types, domain errors, and config schema extension
@@ -138,6 +138,7 @@ Plans:
 - [x] 02-03-PLAN.md — Redis client, two-layer UTXO cache, and health check wiring
 - [x] 02-04-PLAN.md — UTXO reservation system with TTL (TDD)
 - [x] 02-05-PLAN.md — Lucid provider, ChainProvider orchestrator, and server integration
+- [ ] 02-06-PLAN.md — Fix libsodium-wrappers-sumo ESM override for tsx runtime (gap closure)
 
 ### Phase 3: Verification
 **Goal**: Validate payment signatures and enforce security against replay attacks
@@ -342,7 +343,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-02-04 |
-| 2. Chain Provider | 5/5 | Complete | 2026-02-05 |
+| 2. Chain Provider | 5/6 | Gap closure | - |
 | 3. Verification | 0/? | Not started | - |
 | 4. Settlement | 0/? | Not started | - |
 | 5. Stablecoins | 0/? | Not started | - |
