@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 02-chain-provider
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md, 02-03-SUMMARY.md, 02-04-SUMMARY.md, 02-05-SUMMARY.md]
 started: 2026-02-05T03:00:00Z
@@ -63,7 +63,12 @@ skipped: 0
   reason: "User reported: Server crashes at import time with ERR_MODULE_NOT_FOUND for libsodium-wrappers-sumo ESM module. Never reaches config validation or any app code."
   severity: blocker
   test: 3,4,5,6
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "libsodium-wrappers-sumo@0.7.16 has packaging bug — ESM entry imports ./libsodium-sumo.mjs but file not published in package. @cardano-sdk/crypto (Lucid dep) does top-level import, crashing tsx at startup. tsup bundles so build works, vitest mocks so tests work, only tsx runtime fails."
+  artifacts:
+    - path: "node_modules/.pnpm/libsodium-wrappers-sumo@0.7.16/.../dist/modules-sumo-esm/libsodium-wrappers.mjs"
+      issue: "Imports ./libsodium-sumo.mjs which is not published in the package"
+    - path: "src/chain/lucid-provider.ts"
+      issue: "Top-level Lucid import triggers libsodium load at startup"
+  missing:
+    - "pnpm override libsodium-wrappers-sumo to 0.8.2 (fixes the ESM import)"
+  debug_session: ".planning/debug/libsodium-esm-resolution-failure.md"
