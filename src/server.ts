@@ -5,6 +5,7 @@ import helmet from '@fastify/helmet';
 import type { FastifyInstance } from 'fastify';
 import fastify from 'fastify';
 
+import { createChainProvider, createRedisClient, disconnectRedis } from './chain/index.js';
 import type { Config } from './config/index.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { requestLoggerPlugin } from './plugins/request-logger.js';
@@ -62,6 +63,39 @@ export async function createServer(options: CreateServerOptions): Promise<Fastif
   // Custom plugins
   await server.register(errorHandlerPlugin, { isDev });
   await server.register(requestLoggerPlugin, { isDev });
+
+  // ---- Chain layer initialization ----
+  try {
+    const redis = createRedisClient(config.chain.redis, server.log);
+    await redis.connect();
+    server.decorate('redis', redis);
+
+    server.log.info(
+      {
+        network: config.chain.network,
+        tier: config.chain.blockfrost.tier,
+        redis: `${config.chain.redis.host}:${config.chain.redis.port}`,
+      },
+      'Chain layer: Redis connected'
+    );
+
+    const chainProvider = await createChainProvider(config.chain, redis, server.log);
+    server.decorate('chainProvider', chainProvider);
+
+    server.log.info({ network: config.chain.network }, 'Chain layer initialized');
+
+    // Shutdown hook for Redis disconnect
+    server.addHook('onClose', async () => {
+      await disconnectRedis(redis);
+      server.log.info('Chain layer shutdown complete');
+    });
+  } catch (error) {
+    server.log.error(
+      { err: error instanceof Error ? error.message : 'Unknown error' },
+      'Chain layer initialization failed'
+    );
+    throw error;
+  }
 
   // Routes
   await server.register(healthRoutesPlugin);

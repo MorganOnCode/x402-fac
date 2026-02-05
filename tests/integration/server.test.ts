@@ -1,8 +1,38 @@
 import type { FastifyInstance } from 'fastify';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 
 import type { Config } from '@/config/index.js';
 import { createServer } from '@/server.js';
+
+// Mock Lucid Evolution packages to prevent native module loading (libsodium)
+// The Lucid() function must return a proper mock object with selectWallet
+vi.mock('@lucid-evolution/lucid', () => ({
+  Lucid: vi.fn().mockResolvedValue({
+    selectWallet: { fromSeed: vi.fn(), fromPrivateKey: vi.fn() },
+    newTx: vi.fn(),
+    config: vi.fn(),
+  }),
+}));
+vi.mock('@lucid-evolution/provider', () => ({
+  Blockfrost: vi.fn(),
+}));
+
+// Mock ioredis to prevent real Redis connections
+vi.mock('ioredis', () => {
+  class RedisMock {
+    connect = vi.fn().mockResolvedValue(undefined);
+    quit = vi.fn().mockResolvedValue(undefined);
+    ping = vi.fn().mockResolvedValue('PONG');
+    get = vi.fn().mockResolvedValue(null);
+    set = vi.fn().mockResolvedValue('OK');
+    del = vi.fn().mockResolvedValue(1);
+    keys = vi.fn().mockResolvedValue([]);
+    mget = vi.fn().mockResolvedValue([]);
+    on = vi.fn().mockReturnThis();
+    status = 'ready';
+  }
+  return { default: RedisMock };
+});
 
 describe('Server Integration', () => {
   let server: FastifyInstance;
