@@ -4,7 +4,10 @@
       "esbuild",
       "@rolldown/binding-darwin-arm64",
       "unrs-resolver"
-    ]
+    ],
+    "overrides": {
+      "libsodium-wrappers-sumo": "0.8.2"
+    }
   },
   "name": "x402-fac",
   "version": "1.0.0",
