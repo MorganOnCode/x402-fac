@@ -25,12 +25,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Cardano
 
-- [ ] **CARD-01**: Facilitator maintains UTXO state with reservation system to prevent contention
-- [ ] **CARD-02**: Facilitator accepts ADA as payment currency
+- [x] **CARD-01**: Facilitator maintains UTXO state with reservation system to prevent contention
+- [x] **CARD-02**: Facilitator accepts ADA as payment currency
 - [ ] **CARD-03**: Facilitator batches multiple payments into single on-chain transactions for economic viability
 - [ ] **CARD-04**: Facilitator accepts stablecoins (USDM, DJED, iUSD) as payment currencies
-- [ ] **CARD-05**: Facilitator calculates and includes min UTXO ADA for token outputs
-- [ ] **CARD-06**: Facilitator handles slot-based validity intervals correctly
+- [x] **CARD-05**: Facilitator calculates and includes min UTXO ADA for token outputs
+- [x] **CARD-06**: Facilitator handles slot-based validity intervals correctly
 
 ### Security
 
@@ -131,12 +131,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROT-03 | Phase 8 | Pending |
 | PROT-04 | Phase 3 | Pending |
 | PROT-05 | Phase 3 | Pending |
-| CARD-01 | Phase 2 | Pending |
-| CARD-02 | Phase 2 | Pending |
+| CARD-01 | Phase 2 | Complete |
+| CARD-02 | Phase 2 | Complete |
 | CARD-03 | Phase 6 | Pending |
 | CARD-04 | Phase 5 | Pending |
-| CARD-05 | Phase 2 | Pending |
-| CARD-06 | Phase 2 | Pending |
+| CARD-05 | Phase 2 | Complete |
+| CARD-06 | Phase 2 | Complete |
 | SECU-01 | Phase 3 | Pending |
 | SECU-02 | Phase 3 | Pending |
 | SECU-03 | Phase 3 | Pending |

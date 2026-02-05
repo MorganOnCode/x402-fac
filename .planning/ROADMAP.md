@@ -26,7 +26,7 @@ Security is enforced through automated tooling integrated into the development w
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Project scaffolding, tooling, security baseline, and development infrastructure
-- [ ] **Phase 2: Chain Provider** - Cardano blockchain interaction and UTXO state management
+- [x] **Phase 2: Chain Provider** - Cardano blockchain interaction and UTXO state management
 - [ ] **Phase 3: Verification** - Payment signature verification and security enforcement
 - [ ] **Phase 4: Settlement** - On-chain payment submission with immediate settlement
 - [ ] **Phase 5: Stablecoins** - Multi-token support for USDM, DJED, iUSD
@@ -133,11 +133,11 @@ Plans:
 **Plans**: 5 plans in 4 waves
 
 Plans:
-- [ ] 02-01-PLAN.md — Chain types, domain errors, and config schema extension
-- [ ] 02-02-PLAN.md — Blockfrost client with exponential backoff retry (TDD)
-- [ ] 02-03-PLAN.md — Redis client, two-layer UTXO cache, and health check wiring
-- [ ] 02-04-PLAN.md — UTXO reservation system with TTL (TDD)
-- [ ] 02-05-PLAN.md — Lucid provider, ChainProvider orchestrator, and server integration
+- [x] 02-01-PLAN.md — Chain types, domain errors, and config schema extension
+- [x] 02-02-PLAN.md — Blockfrost client with exponential backoff retry (TDD)
+- [x] 02-03-PLAN.md — Redis client, two-layer UTXO cache, and health check wiring
+- [x] 02-04-PLAN.md — UTXO reservation system with TTL (TDD)
+- [x] 02-05-PLAN.md — Lucid provider, ChainProvider orchestrator, and server integration
 
 ### Phase 3: Verification
 **Goal**: Validate payment signatures and enforce security against replay attacks
@@ -342,7 +342,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-02-04 |
-| 2. Chain Provider | 4/5 | In progress | - |
+| 2. Chain Provider | 5/5 | Complete | 2026-02-05 |
 | 3. Verification | 0/? | Not started | - |
 | 4. Settlement | 0/? | Not started | - |
 | 5. Stablecoins | 0/? | Not started | - |
