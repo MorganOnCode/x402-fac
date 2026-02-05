@@ -66,6 +66,9 @@ Recent decisions affecting current work:
 | BigInt 'n' suffix serialization | 02-03 | JSON replacer/reviver with digit-n pattern for Redis storage |
 | L2 natural TTL expiry | 02-03 | invalidateAll clears L1 only; Redis entries expire via EX TTL |
 | Optional Fastify redis decoration | 02-03 | Health check backward compatible when Redis not yet wired |
+| Retry 3x with 500ms exponential backoff | 02-02 | Balances recovery from transient failures without excessive delay |
+| 404 on address UTxOs returns empty array | 02-02 | Unused addresses are normal in Cardano; 404 means no UTxOs |
+| API key never in errors or logs | 02-02 | Prevents common security vulnerability of leaking API keys |
 
 ### Pending Todos
 
@@ -100,13 +103,14 @@ Key artifacts ready for Phase 2:
 ## Phase 2 Progress
 
 - **02-01**: Chain types (CachedUtxo, UtxoRef, Reservation), 5 CHAIN_* errors, ChainConfigSchema with mainnet guardrail
-- **02-02**: (in progress by parallel agent) Blockfrost client with retry logic
+- **02-02**: BlockfrostClient with exponential backoff retry (withRetry, 404-as-empty, API key safety), @blockfrost/blockfrost-js v6.1.0
 - **02-03**: Redis client factory (ioredis, lazy connect, retry), two-layer UTXO cache (L1 Map + L2 Redis), BigInt serialization, real Redis health check
 
 Key artifacts available:
 - `src/chain/types.ts` - Domain types with bigint values
 - `src/chain/errors.ts` - CHAIN_* domain errors
 - `src/chain/config.ts` - ChainConfigSchema + resolveBlockfrostUrl
+- `src/chain/blockfrost-client.ts` - BlockfrostClient with retry, error mapping, 404 handling
 - `src/chain/redis-client.ts` - Redis client factory with lazy connect
 - `src/chain/utxo-cache.ts` - Two-layer UTXO cache with BigInt serialization
 - `src/routes/health.ts` - Health endpoint with real Redis ping check
