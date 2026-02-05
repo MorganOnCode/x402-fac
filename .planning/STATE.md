@@ -5,35 +5,35 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 2 - Chain Provider
+**Current focus:** Phase 2 complete -- ready for Phase 3
 
 ## Current Position
 
 Phase: 2 of 8 (Chain Provider)
-Plan: 4 of 5 in phase 2
-Status: In progress
-Last activity: 2026-02-05 - Completed 02-04-PLAN.md (UTXO Reservation System)
+Plan: 5 of 5 in phase 2
+Status: Phase complete
+Last activity: 2026-02-05 - Completed 02-05-PLAN.md (ChainProvider orchestrator + server integration)
 
-Progress: [████████░░░░░░░░░░░░] 45% overall (9/20 plans complete)
-Phase 2: [████████░░] 4/5 plans complete
+Progress: [██████████░░░░░░░░░░] 50% overall (10/20 plans complete)
+Phase 2: [██████████] 5/5 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 5 min
-- Total execution time: 0.7 hours
+- Total execution time: 0.8 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5 | 30 min | 6 min |
-| 02-chain-provider | 4 | 20 min | 5 min |
+| 02-chain-provider | 5 | 29 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 3 min, 4 min, 6 min, 6 min, 4 min
-- Trend: Stable/fast
+- Last 5 plans: 4 min, 6 min, 6 min, 4 min, 9 min
+- Trend: Stable (02-05 longer due to integration complexity)
 
 *Updated after each plan completion*
 
@@ -73,6 +73,11 @@ Recent decisions affecting current work:
 | PX millisecond TTL for reservations | 02-04 | Matches in-memory ttlMs exactly for consistent expiry |
 | loadFromRedis startup-only | 02-04 | keys() is O(N), acceptable at startup, never in hot path |
 | releaseAll by requestId | 02-04 | Transaction failure frees all UTXOs for that request atomically |
+| @lucid-evolution/provider separate dep | 02-05 | Blockfrost class not re-exported from main lucid package |
+| Protocol params cached 5min in-memory | 02-05 | Changes once per epoch (~5 days), no Redis needed |
+| Min UTXO floor at 1 ADA | 02-05 | Practical minimum on Cardano regardless of calculation |
+| Chain init failure prevents startup | 02-05 | Facilitator useless without chain access, fail fast |
+| Class-based ioredis mock for integration | 02-05 | vi.fn() doesn't work as constructor, class mock required |
 
 ### Pending Todos
 
@@ -80,12 +85,12 @@ None currently.
 
 ### Blockers/Concerns
 
-None - UTXO reservation system complete. One plan remaining: 02-05 (ChainProvider orchestrator + server integration).
+None - Phase 2 complete. Ready for Phase 3 (Verification Layer).
 
 ## Session Continuity
 
-Last session: 2026-02-05T02:05:29Z
-Stopped at: Completed 02-04-PLAN.md (UTXO Reservation System)
+Last session: 2026-02-05T02:19:59Z
+Stopped at: Completed 02-05-PLAN.md (ChainProvider orchestrator + server integration)
 Resume file: None
 
 ## Phase 1 Completion Summary
@@ -104,20 +109,18 @@ Key artifacts ready for Phase 2:
 - `src/errors/index.ts` - Error creation pattern
 - `src/routes/health.ts` - Route plugin pattern
 
-## Phase 2 Progress
+## Phase 2 Completion Summary
+
+Phase 2 built the complete Cardano chain provider layer:
 
 - **02-01**: Chain types (CachedUtxo, UtxoRef, Reservation), 5 CHAIN_* errors, ChainConfigSchema with mainnet guardrail
 - **02-02**: BlockfrostClient with exponential backoff retry (withRetry, 404-as-empty, API key safety), @blockfrost/blockfrost-js v6.1.0
 - **02-03**: Redis client factory (ioredis, lazy connect, retry), two-layer UTXO cache (L1 Map + L2 Redis), BigInt serialization, real Redis health check
 - **02-04**: UTXO reservation system (Map + Redis, TTL expiry, concurrent cap, releaseAll, crash recovery via loadFromRedis)
+- **02-05**: ChainProvider orchestrator (cache-first queries, Lucid Evolution, min UTXO), server lifecycle integration
 
-Key artifacts available:
-- `src/chain/types.ts` - Domain types with bigint values
-- `src/chain/errors.ts` - CHAIN_* domain errors
-- `src/chain/config.ts` - ChainConfigSchema + resolveBlockfrostUrl
-- `src/chain/blockfrost-client.ts` - BlockfrostClient with retry, error mapping, 404 handling
-- `src/chain/redis-client.ts` - Redis client factory with lazy connect
-- `src/chain/utxo-cache.ts` - Two-layer UTXO cache with BigInt serialization
-- `src/chain/utxo-reservation.ts` - UTXO reservation with TTL, cap, Redis persistence
-- `src/routes/health.ts` - Health endpoint with real Redis ping check
-- `src/types/index.ts` - Fastify instance augmentation with optional redis
+Key artifacts for Phase 3:
+- `src/chain/index.ts` - Barrel exports for entire chain module
+- `src/chain/provider.ts` - ChainProvider with getUtxos, getAvailableUtxos, reserveUtxo, getCurrentSlot, getBalance, getMinUtxoLovelace, getLucid
+- `src/server.ts` - Server with chain layer initialization (fastify.chainProvider, fastify.redis)
+- `src/types/index.ts` - Fastify augmented with redis and chainProvider
