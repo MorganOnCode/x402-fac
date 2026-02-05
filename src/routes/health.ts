@@ -1,5 +1,6 @@
 import type { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
+import type Redis from 'ioredis';
 
 interface DependencyStatus {
   status: 'up' | 'down';
@@ -15,11 +16,24 @@ interface HealthResponse {
   dependencies: Record<string, DependencyStatus>;
 }
 
-// Dependency check functions (will be expanded in later phases)
-async function checkRedis(): Promise<DependencyStatus> {
-  // Placeholder - Redis check will be implemented in Phase 2+
-  // For now, return 'up' if not configured
-  return { status: 'up', latency: 0 };
+// Dependency check functions
+
+async function checkRedis(redis?: Redis): Promise<DependencyStatus> {
+  if (!redis) {
+    // Not configured yet -- return up (placeholder behavior)
+    return { status: 'up', latency: 0 };
+  }
+  const start = Date.now();
+  try {
+    await redis.ping();
+    return { status: 'up', latency: Date.now() - start };
+  } catch (err) {
+    return {
+      status: 'down',
+      latency: Date.now() - start,
+      error: err instanceof Error ? err.message : 'Unknown error',
+    };
+  }
 }
 
 async function checkIpfs(): Promise<DependencyStatus> {
@@ -32,16 +46,16 @@ const healthRoutes: FastifyPluginCallback = (fastify, _options, done) => {
   fastify.get<{ Reply: HealthResponse }>('/health', async (_request, reply) => {
     // Run dependency checks in parallel
     const [redisStatus, ipfsStatus] = await Promise.all([
-      checkRedis().catch(
+      checkRedis(fastify.redis).catch(
         (err): DependencyStatus => ({
           status: 'down',
-          error: err.message,
+          error: err instanceof Error ? err.message : 'Unknown error',
         })
       ),
       checkIpfs().catch(
         (err): DependencyStatus => ({
           status: 'down',
-          error: err.message,
+          error: err instanceof Error ? err.message : 'Unknown error',
         })
       ),
     ]);
