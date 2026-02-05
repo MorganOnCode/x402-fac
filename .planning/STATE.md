@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-02-04)
 ## Current Position
 
 Phase: 2 of 8 (Chain Provider)
-Plan: 1 of 5 in phase 2
+Plan: 3 of 5 in phase 2
 Status: In progress
-Last activity: 2026-02-05 - Completed 02-01-PLAN.md (Chain Foundation Types, Errors, Config)
+Last activity: 2026-02-05 - Completed 02-03-PLAN.md (Redis Client and UTXO Cache)
 
-Progress: [██████░░░░░░░░░░░░░░] 30% overall (6/20 plans complete)
-Phase 2: [██░░░░░░░░] 1/5 plans complete
+Progress: [████████░░░░░░░░░░░░] 40% overall (8/20 plans complete)
+Phase 2: [██████░░░░] 3/5 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 8
 - Average duration: 6 min
-- Total execution time: 0.5 hours
+- Total execution time: 0.6 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5 | 30 min | 6 min |
-| 02-chain-provider | 1 | 4 min | 4 min |
+| 02-chain-provider | 3 | 16 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 8 min, 6 min, 5 min, 3 min, 4 min
+- Last 5 plans: 5 min, 3 min, 4 min, 6 min, 6 min
 - Trend: Stable/fast
 
 *Updated after each plan completion*
@@ -62,6 +62,10 @@ Recent decisions affecting current work:
 | UTXO ref format txHash#index | 02-01 | Standard Cardano convention, natural Redis key format |
 | Mainnet env var guardrail | 02-01 | Fail-safe prevents accidental mainnet usage during development |
 | Chain config required | 02-01 | Facilitator cannot operate without chain configuration |
+| ioredis with lazyConnect | 02-03 | Explicit connection control -- caller decides when to connect |
+| BigInt 'n' suffix serialization | 02-03 | JSON replacer/reviver with digit-n pattern for Redis storage |
+| L2 natural TTL expiry | 02-03 | invalidateAll clears L1 only; Redis entries expire via EX TTL |
+| Optional Fastify redis decoration | 02-03 | Health check backward compatible when Redis not yet wired |
 
 ### Pending Todos
 
@@ -69,12 +73,12 @@ None currently.
 
 ### Blockers/Concerns
 
-None - chain foundation complete. Ready for 02-02 (Blockfrost client).
+None - Redis client and UTXO cache complete. Plans 02-02 and 02-03 executing in parallel.
 
 ## Session Continuity
 
-Last session: 2026-02-05T01:47:59Z
-Stopped at: Completed 02-01-PLAN.md (Chain Foundation Types, Errors, Config)
+Last session: 2026-02-05T01:58:18Z
+Stopped at: Completed 02-03-PLAN.md (Redis Client and UTXO Cache)
 Resume file: None
 
 ## Phase 1 Completion Summary
@@ -96,8 +100,14 @@ Key artifacts ready for Phase 2:
 ## Phase 2 Progress
 
 - **02-01**: Chain types (CachedUtxo, UtxoRef, Reservation), 5 CHAIN_* errors, ChainConfigSchema with mainnet guardrail
+- **02-02**: (in progress by parallel agent) Blockfrost client with retry logic
+- **02-03**: Redis client factory (ioredis, lazy connect, retry), two-layer UTXO cache (L1 Map + L2 Redis), BigInt serialization, real Redis health check
 
 Key artifacts available:
 - `src/chain/types.ts` - Domain types with bigint values
 - `src/chain/errors.ts` - CHAIN_* domain errors
 - `src/chain/config.ts` - ChainConfigSchema + resolveBlockfrostUrl
+- `src/chain/redis-client.ts` - Redis client factory with lazy connect
+- `src/chain/utxo-cache.ts` - Two-layer UTXO cache with BigInt serialization
+- `src/routes/health.ts` - Health endpoint with real Redis ping check
+- `src/types/index.ts` - Fastify instance augmentation with optional redis
