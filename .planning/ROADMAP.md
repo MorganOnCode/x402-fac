@@ -168,10 +168,14 @@ Plans:
 - [ ] Invalid signatures rejected before any state changes
 - [ ] OWASP ZAP scan on /verify endpoint passes
 
-**Plans**: TBD
+**Plans**: 5 plans in 4 waves
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — Verification types, Zod schemas, domain errors, config extension
+- [ ] 03-02-PLAN.md — Nonce store with two-layer Map + Redis persistence (TDD)
+- [ ] 03-03-PLAN.md — Verification check functions pipeline (TDD)
+- [ ] 03-04-PLAN.md — Verification orchestrator with multi-error collection (TDD)
+- [ ] 03-05-PLAN.md — Routes (/verify, /nonce) and server integration
 
 ### Phase 4: Settlement
 **Goal**: Submit verified payments to Cardano blockchain
@@ -344,7 +348,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-02-04 |
 | 2. Chain Provider | 6/6 | Complete | 2026-02-05 |
-| 3. Verification | 0/? | Not started | - |
+| 3. Verification | 0/5 | Planned | - |
 | 4. Settlement | 0/? | Not started | - |
 | 5. Stablecoins | 0/? | Not started | - |
 | 6. Batching | 0/? | Not started | - |
@@ -355,5 +359,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 *Roadmap created: 2026-02-04*
 *Phase 1 planned: 2026-02-04*
 *Phase 2 planned: 2026-02-05*
+*Phase 3 planned: 2026-02-05*
 *Depth: comprehensive (8 phases)*
 *Requirements: 27+ v1 mapped (foundation requirements added)*
