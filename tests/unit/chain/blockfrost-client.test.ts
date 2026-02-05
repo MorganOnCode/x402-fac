@@ -2,7 +2,16 @@ import { BlockfrostServerError } from '@blockfrost/blockfrost-js';
 import type { FastifyBaseLogger } from 'fastify';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { withRetry, BlockfrostClient, createBlockfrostClient } from '@/chain/blockfrost-client.js';
+import { BlockfrostClient, createBlockfrostClient, withRetry } from '@/chain/blockfrost-client.js';
+
+// ---- shared mock state ----
+
+/** The most recently created mock BlockFrostAPI instance. */
+let latestMockApi: {
+  blocksLatest: ReturnType<typeof vi.fn>;
+  epochsLatestParameters: ReturnType<typeof vi.fn>;
+  addressesUtxos: ReturnType<typeof vi.fn>;
+};
 
 // ---- mock BlockFrostAPI (vitest hoists vi.mock to top) ----
 
@@ -10,11 +19,18 @@ vi.mock('@blockfrost/blockfrost-js', async () => {
   const actual = await vi.importActual('@blockfrost/blockfrost-js');
   return {
     ...actual,
-    BlockFrostAPI: vi.fn().mockImplementation(() => ({
-      blocksLatest: vi.fn(),
-      epochsLatestParameters: vi.fn(),
-      addressesUtxos: vi.fn(),
-    })),
+    // Use a class so `new BlockFrostAPI(...)` works
+    // eslint-disable-next-line @typescript-eslint/no-extraneous-class
+    BlockFrostAPI: class MockBlockFrostAPI {
+      constructor() {
+        latestMockApi = {
+          blocksLatest: vi.fn(),
+          epochsLatestParameters: vi.fn(),
+          addressesUtxos: vi.fn(),
+        };
+        Object.assign(this, latestMockApi);
+      }
+    },
   };
 });
 
@@ -50,6 +66,8 @@ function createMockLogger(): FastifyBaseLogger {
     level: 'info',
   } as unknown as FastifyBaseLogger;
 }
+
+// ---- withRetry tests ----
 
 describe('withRetry', () => {
   let logger: FastifyBaseLogger;
@@ -180,16 +198,16 @@ describe('withRetry', () => {
     const fn = vi.fn().mockRejectedValue(makeServerError(429));
 
     const promise = withRetry(fn, 'getAddressUtxos', logger);
+    // Attach rejection handler early to prevent unhandled rejection warnings
+    const rejection = promise.catch((e: unknown) => e);
 
     // Advance through all 3 retry delays: 500 + 1000 + 2000 = 3500ms
     await vi.advanceTimersByTimeAsync(500);
     await vi.advanceTimersByTimeAsync(1000);
     await vi.advanceTimersByTimeAsync(2000);
 
-    await expect(promise).rejects.toThrow();
-    await expect(promise).rejects.toMatchObject({
-      code: 'CHAIN_RATE_LIMITED',
-    });
+    const error = await rejection;
+    expect(error).toMatchObject({ code: 'CHAIN_RATE_LIMITED' });
     // 1 initial + 3 retries = 4 total attempts
     expect(fn).toHaveBeenCalledTimes(4);
   });
@@ -198,15 +216,15 @@ describe('withRetry', () => {
     const fn = vi.fn().mockRejectedValue(makeNetworkError('ECONNREFUSED'));
 
     const promise = withRetry(fn, 'getLatestBlock', logger);
+    // Attach rejection handler early to prevent unhandled rejection warnings
+    const rejection = promise.catch((e: unknown) => e);
 
     await vi.advanceTimersByTimeAsync(500);
     await vi.advanceTimersByTimeAsync(1000);
     await vi.advanceTimersByTimeAsync(2000);
 
-    await expect(promise).rejects.toThrow();
-    await expect(promise).rejects.toMatchObject({
-      code: 'CHAIN_CONNECTION_ERROR',
-    });
+    const error = await rejection;
+    expect(error).toMatchObject({ code: 'CHAIN_CONNECTION_ERROR' });
     expect(fn).toHaveBeenCalledTimes(4);
   });
 
@@ -243,6 +261,8 @@ describe('withRetry', () => {
   });
 });
 
+// ---- BlockfrostClient tests ----
+
 describe('BlockfrostClient', () => {
   let logger: FastifyBaseLogger;
   let client: BlockfrostClient;
@@ -264,28 +284,16 @@ describe('BlockfrostClient', () => {
 
   describe('getAddressUtxos', () => {
     it('returns empty array on 404 (unused address)', async () => {
-      // Access mock internals
-      const { BlockFrostAPI } = await import('@blockfrost/blockfrost-js');
-      const mockInstance = (BlockFrostAPI as unknown as ReturnType<typeof vi.fn>).mock.results[0]
-        ?.value;
-      if (mockInstance) {
-        mockInstance.addressesUtxos.mockRejectedValue(makeServerError(404));
-      }
+      latestMockApi.addressesUtxos.mockRejectedValue(makeServerError(404));
 
       const result = await client.getAddressUtxos('addr_test1unused');
       expect(result).toEqual([]);
     });
 
     it('retries on 429 and returns result', async () => {
-      const { BlockFrostAPI } = await import('@blockfrost/blockfrost-js');
-      const mockInstance = (BlockFrostAPI as unknown as ReturnType<typeof vi.fn>).mock.results.at(
-        -1
-      )?.value;
-      if (mockInstance) {
-        mockInstance.addressesUtxos
-          .mockRejectedValueOnce(makeServerError(429))
-          .mockResolvedValue([{ tx_hash: 'abc', tx_index: 0 }]);
-      }
+      latestMockApi.addressesUtxos
+        .mockRejectedValueOnce(makeServerError(429))
+        .mockResolvedValue([{ tx_hash: 'abc', tx_index: 0 }]);
 
       const promise = client.getAddressUtxos('addr_test1used');
       await vi.advanceTimersByTimeAsync(500);
@@ -297,14 +305,8 @@ describe('BlockfrostClient', () => {
 
   describe('getLatestBlock', () => {
     it('returns block data on success', async () => {
-      const { BlockFrostAPI } = await import('@blockfrost/blockfrost-js');
-      const mockInstance = (BlockFrostAPI as unknown as ReturnType<typeof vi.fn>).mock.results.at(
-        -1
-      )?.value;
       const blockData = { slot: 12345, time: 1234567890, hash: 'abc123' };
-      if (mockInstance) {
-        mockInstance.blocksLatest.mockResolvedValue(blockData);
-      }
+      latestMockApi.blocksLatest.mockResolvedValue(blockData);
 
       const result = await client.getLatestBlock();
       expect(result).toEqual(blockData);
@@ -313,20 +315,16 @@ describe('BlockfrostClient', () => {
 
   describe('getEpochParameters', () => {
     it('returns epoch parameters on success', async () => {
-      const { BlockFrostAPI } = await import('@blockfrost/blockfrost-js');
-      const mockInstance = (BlockFrostAPI as unknown as ReturnType<typeof vi.fn>).mock.results.at(
-        -1
-      )?.value;
       const params = { min_fee_a: 44, min_fee_b: 155381 };
-      if (mockInstance) {
-        mockInstance.epochsLatestParameters.mockResolvedValue(params);
-      }
+      latestMockApi.epochsLatestParameters.mockResolvedValue(params);
 
       const result = await client.getEpochParameters();
       expect(result).toEqual(params);
     });
   });
 });
+
+// ---- createBlockfrostClient tests ----
 
 describe('createBlockfrostClient', () => {
   it('creates a BlockfrostClient from ChainConfig', () => {
@@ -343,13 +341,16 @@ describe('createBlockfrostClient', () => {
       redis: { host: '127.0.0.1', port: 6379 },
     };
 
-    const client = createBlockfrostClient(config, logger);
-    expect(client).toBeInstanceOf(BlockfrostClient);
+    const result = createBlockfrostClient(config, logger);
+    expect(result).toBeInstanceOf(BlockfrostClient);
   });
 });
 
+// ---- API key safety tests ----
+
 describe('API key safety', () => {
   it('does not expose projectId in error messages', async () => {
+    vi.useFakeTimers();
     const logger = createMockLogger();
     const secretKey = 'previewSuperSecretApiKey999';
     const client = new BlockfrostClient({
@@ -358,28 +359,21 @@ describe('API key safety', () => {
       logger,
     });
 
-    // Trigger a rate limit exhaustion
-    const { BlockFrostAPI } = await import('@blockfrost/blockfrost-js');
-    const mockInstance = (BlockFrostAPI as unknown as ReturnType<typeof vi.fn>).mock.results.at(
-      -1
-    )?.value;
-    if (mockInstance) {
-      mockInstance.blocksLatest.mockRejectedValue(makeServerError(429));
-    }
+    // Configure mock to always fail with 429
+    latestMockApi.blocksLatest.mockRejectedValue(makeServerError(429));
 
-    vi.useFakeTimers();
     const promise = client.getLatestBlock();
+    // Attach rejection handler early to prevent unhandled rejection warnings
+    const rejection = promise.catch((e: unknown) => e);
+
     await vi.advanceTimersByTimeAsync(500);
     await vi.advanceTimersByTimeAsync(1000);
     await vi.advanceTimersByTimeAsync(2000);
 
-    try {
-      await promise;
-      expect.fail('Expected error');
-    } catch (error) {
-      const errMsg = (error as Error).message;
-      expect(errMsg).not.toContain(secretKey);
-    }
+    const error = await rejection;
+    expect(error).toBeInstanceOf(Error);
+    const errMsg = (error as Error).message;
+    expect(errMsg).not.toContain(secretKey);
 
     // Check logger calls don't contain the key
     const allLogCalls = [
