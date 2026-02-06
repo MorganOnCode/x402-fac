@@ -86,6 +86,7 @@ function mockAsyncCheck(result: CheckResult): VerifyCheck {
 
 /** Helper: dynamically import verifyPayment with mocked VERIFICATION_CHECKS. */
 async function importWithMockedChecks(checks: VerifyCheck[]) {
+  vi.resetModules();
   vi.doMock('../../../src/verify/checks.js', () => ({
     VERIFICATION_CHECKS: checks,
   }));

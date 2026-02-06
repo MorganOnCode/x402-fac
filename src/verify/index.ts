@@ -46,6 +46,8 @@ export {
   VERIFICATION_CHECKS,
 } from './checks.js';
 
-// Future exports (Plans 03-04):
-// export { verifyPayment } from './verify-payment.js';     // Plan 03
+// Verification orchestrator (Plan 03)
+export { verifyPayment, describeFailure } from './verify-payment.js';
+
+// Future exports (Plan 04):
 // export { verifyRoute } from '../routes/verify.js';       // Plan 04
