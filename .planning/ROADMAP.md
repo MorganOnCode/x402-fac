@@ -141,41 +141,41 @@ Plans:
 - [x] 02-06-PLAN.md — Fix libsodium-wrappers-sumo ESM override for tsx runtime (gap closure)
 
 ### Phase 3: Verification
-**Goal**: Validate payment signatures and enforce security against replay attacks
+**Goal**: Validate Cardano payment transactions using transaction-based verification model
 **Depends on**: Phase 2
 **Requirements**: PROT-01, PROT-04, PROT-05, SECU-01, SECU-02, SECU-03
 
 **Deliverables:**
-- CIP-8/CIP-30 signature verification implementation
-- Exact payment scheme handler
-- Nonce tracking store (in-memory with optional Redis)
-- Chain ID validation
-- Timestamp/validity window validation
-- Balance verification against UTXO state
-- /verify endpoint implementation
+- CBOR transaction deserialization (CML via Lucid Evolution)
+- Output verification (recipient address + payment amount)
+- Network and scheme validation (CAIP-2 chain IDs)
+- Witness presence check (transaction is signed)
+- TTL and fee sanity checks
+- /verify endpoint implementation (POST, always HTTP 200)
+- x402 V2 wire format compliance
 
 **Success Criteria** (what must be TRUE):
-  1. POST /verify validates CIP-8/CIP-30 signatures and returns verification result
-  2. Exact payment scheme verifies amount matches requirement
-  3. Used nonces are tracked and replays are rejected
-  4. Signatures with wrong chain ID are rejected
-  5. Payments outside validity window are rejected
+  1. POST /verify accepts base64-encoded signed CBOR transactions and returns verification result
+  2. Transaction outputs are verified against required recipient and amount
+  3. Network mismatch (wrong Cardano network) is detected and rejected
+  4. Unsigned transactions (missing witnesses) are rejected
+  5. Expired transactions (TTL < current slot) are detected
+  6. All verification failures collected (not fail-fast) with specific snake_case reasons
 
 **Security Checks:**
-- [ ] Signature verification is constant-time (timing attack resistance)
-- [ ] Nonce store is atomic (no race conditions)
 - [ ] All verification failures logged with details (but not secrets)
-- [ ] Invalid signatures rejected before any state changes
+- [ ] UTXO model provides inherent replay protection (no separate nonce tracking needed)
+- [ ] Address comparison uses canonical CBOR hex (not bech32 string comparison)
+- [ ] Raw transaction CBOR not logged (could be large)
 - [ ] OWASP ZAP scan on /verify endpoint passes
 
-**Plans**: 5 plans in 4 waves
+**Plans**: 4 plans in 4 waves
 
 Plans:
-- [ ] 03-01-PLAN.md — Verification types, Zod schemas, domain errors, config extension
-- [ ] 03-02-PLAN.md — Nonce store with two-layer Map + Redis persistence (TDD)
-- [ ] 03-03-PLAN.md — Verification check functions pipeline (TDD)
-- [ ] 03-04-PLAN.md — Verification orchestrator with multi-error collection (TDD)
-- [ ] 03-05-PLAN.md — Routes (/verify, /nonce) and server integration
+- [ ] 03-01-PLAN.md — Verification types, Zod schemas, domain errors, config extension (transaction-based)
+- [ ] 03-02-PLAN.md — CBOR deserialization and verification check functions (TDD)
+- [ ] 03-03-PLAN.md — Verification orchestrator with multi-error collection (TDD)
+- [ ] 03-04-PLAN.md — POST /verify route and server integration
 
 ### Phase 4: Settlement
 **Goal**: Submit verified payments to Cardano blockchain
@@ -348,7 +348,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-02-04 |
 | 2. Chain Provider | 6/6 | Complete | 2026-02-05 |
-| 3. Verification | 0/5 | Planned | - |
+| 3. Verification | 0/4 | Planned | - |
 | 4. Settlement | 0/? | Not started | - |
 | 5. Stablecoins | 0/? | Not started | - |
 | 6. Batching | 0/? | Not started | - |
