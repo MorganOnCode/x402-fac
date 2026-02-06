@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 2 complete (including gap closure) -- ready for Phase 3
+**Current focus:** Phase 3 in progress -- verification domain types established
 
 ## Current Position
 
-Phase: 2 of 8 (Chain Provider)
-Plan: 6 of 6 in phase 2 (gap closure complete)
-Status: Phase complete
-Last activity: 2026-02-05 - Completed 02-06-PLAN.md (libsodium ESM fix, gap closure)
+Phase: 3 of 8 (Verification)
+Plan: 1 of 4 in phase 3
+Status: In progress
+Last activity: 2026-02-06 - Completed 03-01-PLAN.md (verification domain types)
 
-Progress: [███████████░░░░░░░░░] 52% overall (11/21 plans complete)
-Phase 2: [██████████] 6/6 plans complete
+Progress: [████████████░░░░░░░░] 57% overall (12/21 plans complete)
+Phase 3: [██░░░░░░░░] 1/4 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 5 min
-- Total execution time: 0.8 hours
+- Total execution time: 0.9 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Phase 2: [██████████] 6/6 plans complete
 |-------|-------|-------|----------|
 | 01-foundation | 5 | 30 min | 6 min |
 | 02-chain-provider | 6 | 31 min | 5 min |
+| 03-verification | 1 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 6 min, 6 min, 4 min, 9 min, 2 min
-- Trend: Stable (02-06 fast -- single override fix)
+- Last 5 plans: 6 min, 4 min, 9 min, 2 min, 5 min
+- Trend: Stable
 
 *Updated after each plan completion*
 
@@ -79,6 +80,10 @@ Recent decisions affecting current work:
 | Chain init failure prevents startup | 02-05 | Facilitator useless without chain access, fail fast |
 | Class-based ioredis mock for integration | 02-05 | vi.fn() doesn't work as constructor, class mock required |
 | Override-only libsodium fix | 02-06 | Pin libsodium-wrappers-sumo@0.8.2 via pnpm.overrides, no upstream upgrades |
+| Zod v4 regex requires error msg | 03-01 | z.string().regex() needs second arg in Zod v4 |
+| Zod v4 record requires two args | 03-01 | z.record(key, value) not z.record(value) in Zod v4 |
+| VERIFY errors use HTTP 200 | 03-01 | VerifyInvalidFormatError returns 200 per locked "always HTTP 200" decision |
+| Verification config in ChainConfig | 03-01 | Chain-specific settings (fee bounds, grace buffer, timeouts) |
 
 ### Pending Todos
 
@@ -103,12 +108,12 @@ Items 3 and 8 applied to Phase 3 plans before execution. Items 1-2, 4-7, 9 captu
 
 ### Blockers/Concerns
 
-None - Phase 2 complete. Phase 3 plans updated with masumi gap analysis findings. Ready for Phase 3 execution.
+None - Phase 3 in progress. Plan 01 (domain types) complete. Ready for Plan 02 (CBOR deserialization).
 
 ## Session Continuity
 
-Last session: 2026-02-05T04:53:33Z
-Stopped at: Completed 02-06-PLAN.md (libsodium ESM fix, gap closure)
+Last session: 2026-02-06T12:50:56Z
+Stopped at: Completed 03-01-PLAN.md (verification domain types)
 Resume file: None
 
 ## Phase 1 Completion Summary
