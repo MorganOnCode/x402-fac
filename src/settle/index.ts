@@ -19,5 +19,6 @@ export type {
   TxInfo,
 } from './types.js';
 
-// Future exports:
-// export { settlePayment } from './settle-payment.js';  // Plan 02
+// Settlement orchestrator
+export { settlePayment } from './settle-payment.js';
+export type { RedisLike } from './settle-payment.js';
