@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 4 in progress -- settlement types, BlockfrostClient extension, and orchestrator done. Route wiring (Plan 03) next.
+**Current focus:** Phase 4 complete -- all 3 plans executed. POST /settle and POST /status endpoints wired, 204 tests passing. Ready for Phase 4 verification/UAT.
 
 ## Current Position
 
 Phase: 4 of 8 (Settlement)
-Plan: 2 of 3 in phase 4
-Status: In progress
-Last activity: 2026-02-06 - Completed 04-02-PLAN.md (settlement orchestrator)
+Plan: 3 of 3 in phase 4
+Status: Phase complete
+Last activity: 2026-02-06 - Completed 04-03-PLAN.md (settlement route wiring)
 
-Progress: [█████████████████░░░] 81% overall (17/21 plans complete)
-Phase 4: [██████░░░░] 2/3 plans complete
+Progress: [██████████████████░░] 86% overall (18/21 plans complete)
+Phase 4: [██████████] 3/3 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: 5 min
-- Total execution time: 1.5 hours
+- Total execution time: 1.6 hours
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Phase 4: [██████░░░░] 2/3 plans complete
 | 01-foundation | 5 | 30 min | 6 min |
 | 02-chain-provider | 6 | 31 min | 5 min |
 | 03-verification | 4 | 24 min | 6 min |
-| 04-settlement | 2 | 10 min | 5 min |
+| 04-settlement | 3 | 14 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 9 min, 5 min, 5 min, 4 min, 6 min
+- Last 5 plans: 5 min, 5 min, 4 min, 6 min, 4 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -100,6 +100,9 @@ Recent decisions affecting current work:
 | Hardcoded settlement constants (5s/120s/24h) | 04-02 | Per research -- unlikely to change, easy to extract to config later |
 | RedisLike interface (not ioredis import) | 04-02 | Minimal dependency surface; only needs set()/get(); easier to mock |
 | handleExistingRecord extracted as helper | 04-02 | Isolates dedup branch logic from happy path flow |
+| Public blockfrostClient accessor on ChainProvider | 04-03 | Routes need BlockfrostClient; minimal getter avoids exposing private field |
+| Mock settlePayment at function level for settle tests | 04-03 | Route tests focus on HTTP handling, not settlement orchestration |
+| Mock blockfrost-client module for status tests | 04-03 | Gives clean control over getTransaction returns via module factory |
 
 ### Pending Todos
 
@@ -124,12 +127,12 @@ Items 3 and 8 applied to Phase 3 plans before execution. Item 3 (multi-asset Des
 
 ### Blockers/Concerns
 
-None - Plan 04-02 complete. Ready for Plan 04-03 (route wiring).
+None - Phase 4 complete. Ready for verification/UAT, then Phase 5 (Stablecoins).
 
 ## Session Continuity
 
-Last session: 2026-02-06T15:33:00Z
-Stopped at: Completed 04-02-PLAN.md (settlement orchestrator)
+Last session: 2026-02-06T15:40:00Z
+Stopped at: Completed 04-03-PLAN.md (settlement route wiring) -- Phase 4 complete
 Resume file: None
 
 ## Phase 1 Completion Summary
@@ -182,3 +185,19 @@ Key artifacts for Phase 4:
 - `src/verify/types.ts` - All Zod schemas and TypeScript types
 - `src/server.ts` - Server with verify route registered alongside health route
 - 167 tests across 11 suites, all passing
+
+## Phase 4 Completion Summary
+
+Phase 4 built the complete settlement pipeline:
+
+- **04-01**: Settlement types (SettleRequest/Response, StatusRequest/Response Zod schemas), TxInfo interface, BlockfrostClient extensions (submitTransaction, getTransaction), 425 retryable
+- **04-02**: settlePayment() orchestrator (re-verify, SHA-256 dedup via Redis SET NX, Blockfrost submission, poll confirmation 5s/120s), 12 unit tests
+- **04-03**: POST /settle and POST /status route plugins, server wiring, 16 integration tests
+
+Key artifacts for Phase 5:
+- `src/routes/settle.ts` - POST /settle endpoint (Zod validation, VerifyContext assembly, settlePayment call)
+- `src/routes/status.ts` - POST /status endpoint (lightweight Blockfrost confirmation query)
+- `src/settle/settle-payment.ts` - Settlement orchestrator with dedup and polling
+- `src/settle/types.ts` - All settlement Zod schemas and TypeScript types
+- `src/server.ts` - Server with 4 route plugins: health, verify, settle, status
+- 204 tests across 14 suites, all passing
