@@ -11,6 +11,8 @@ let latestMockApi: {
   blocksLatest: ReturnType<typeof vi.fn>;
   epochsLatestParameters: ReturnType<typeof vi.fn>;
   addressesUtxos: ReturnType<typeof vi.fn>;
+  txSubmit: ReturnType<typeof vi.fn>;
+  txs: ReturnType<typeof vi.fn>;
 };
 
 // ---- mock BlockFrostAPI (vitest hoists vi.mock to top) ----
@@ -27,6 +29,8 @@ vi.mock('@blockfrost/blockfrost-js', async () => {
           blocksLatest: vi.fn(),
           epochsLatestParameters: vi.fn(),
           addressesUtxos: vi.fn(),
+          txSubmit: vi.fn(),
+          txs: vi.fn(),
         };
         Object.assign(this, latestMockApi);
       }
@@ -106,6 +110,17 @@ describe('withRetry', () => {
 
   it('retries on 500 server error and succeeds', async () => {
     const fn = vi.fn().mockRejectedValueOnce(makeServerError(500)).mockResolvedValue('recovered');
+
+    const promise = withRetry(fn, 'test-op', logger);
+    await vi.advanceTimersByTimeAsync(500);
+    const result = await promise;
+
+    expect(result).toBe('recovered');
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries on 425 (mempool full) and succeeds', async () => {
+    const fn = vi.fn().mockRejectedValueOnce(makeServerError(425)).mockResolvedValue('recovered');
 
     const promise = withRetry(fn, 'test-op', logger);
     await vi.advanceTimersByTimeAsync(500);
@@ -320,6 +335,110 @@ describe('BlockfrostClient', () => {
 
       const result = await client.getEpochParameters();
       expect(result).toEqual(params);
+    });
+  });
+
+  describe('submitTransaction', () => {
+    it('returns tx hash on success', async () => {
+      const txHash = 'abc123def456abc123def456abc123def456abc123def456abc123def456abcd';
+      latestMockApi.txSubmit.mockResolvedValue(txHash);
+
+      const cborBytes = new Uint8Array([0x84, 0xa4, 0x00]);
+      const result = await client.submitTransaction(cborBytes);
+
+      expect(result).toBe(txHash);
+      expect(latestMockApi.txSubmit).toHaveBeenCalledWith(cborBytes);
+      expect(latestMockApi.txSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws immediately on 400 (invalid transaction, no retry)', async () => {
+      latestMockApi.txSubmit.mockRejectedValue(makeServerError(400));
+
+      const cborBytes = new Uint8Array([0x00]);
+      await expect(client.submitTransaction(cborBytes)).rejects.toThrow();
+      expect(latestMockApi.txSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries on 425 (mempool full) and succeeds', async () => {
+      const txHash = 'abc123def456abc123def456abc123def456abc123def456abc123def456abcd';
+      latestMockApi.txSubmit.mockRejectedValueOnce(makeServerError(425)).mockResolvedValue(txHash);
+
+      const cborBytes = new Uint8Array([0x84, 0xa4, 0x00]);
+      const promise = client.submitTransaction(cborBytes);
+      await vi.advanceTimersByTimeAsync(500);
+      const result = await promise;
+
+      expect(result).toBe(txHash);
+      expect(latestMockApi.txSubmit).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries on 429 (rate limited) and succeeds', async () => {
+      const txHash = 'abc123def456';
+      latestMockApi.txSubmit.mockRejectedValueOnce(makeServerError(429)).mockResolvedValue(txHash);
+
+      const cborBytes = new Uint8Array([0x84]);
+      const promise = client.submitTransaction(cborBytes);
+      await vi.advanceTimersByTimeAsync(500);
+      const result = await promise;
+
+      expect(result).toBe(txHash);
+      expect(latestMockApi.txSubmit).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('getTransaction', () => {
+    const mockTxInfo = {
+      hash: 'abc123def456abc123def456abc123def456abc123def456abc123def456abcd',
+      block: 'block123',
+      block_height: 42000,
+      block_time: 1700000000,
+      slot: 84000000,
+      index: 0,
+      fees: '200000',
+      valid_contract: true,
+    };
+
+    it('returns TxInfo on success', async () => {
+      latestMockApi.txs.mockResolvedValue(mockTxInfo);
+
+      const result = await client.getTransaction(mockTxInfo.hash);
+
+      expect(result).toEqual(mockTxInfo);
+      expect(latestMockApi.txs).toHaveBeenCalledWith(mockTxInfo.hash);
+    });
+
+    it('returns null on 404 (tx not yet confirmed)', async () => {
+      latestMockApi.txs.mockRejectedValue(makeServerError(404));
+
+      const result = await client.getTransaction('nonexistent');
+      expect(result).toBeNull();
+    });
+
+    it('throws ChainConnectionError after retries of 500', async () => {
+      latestMockApi.txs.mockRejectedValue(makeServerError(500));
+
+      const promise = client.getTransaction('somehash');
+      const rejection = promise.catch((e: unknown) => e);
+
+      await vi.advanceTimersByTimeAsync(500);
+      await vi.advanceTimersByTimeAsync(1000);
+      await vi.advanceTimersByTimeAsync(2000);
+
+      const error = await rejection;
+      expect(error).toMatchObject({ code: 'CHAIN_CONNECTION_ERROR' });
+      // 1 initial + 3 retries = 4 total attempts
+      expect(latestMockApi.txs).toHaveBeenCalledTimes(4);
+    });
+
+    it('retries on 500 then succeeds', async () => {
+      latestMockApi.txs.mockRejectedValueOnce(makeServerError(500)).mockResolvedValue(mockTxInfo);
+
+      const promise = client.getTransaction(mockTxInfo.hash);
+      await vi.advanceTimersByTimeAsync(500);
+      const result = await promise;
+
+      expect(result).toEqual(mockTxInfo);
+      expect(latestMockApi.txs).toHaveBeenCalledTimes(2);
     });
   });
 });

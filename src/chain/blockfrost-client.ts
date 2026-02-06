@@ -4,6 +4,7 @@ import type { FastifyBaseLogger } from 'fastify';
 import type { ChainConfig } from './config.js';
 import { ChainConnectionError, ChainRateLimitedError } from './errors.js';
 import type { CardanoNetwork } from './types.js';
+import type { TxInfo } from '../settle/types.js';
 
 // ---- Constants ----
 
@@ -12,7 +13,7 @@ const BASE_DELAY_MS = 500;
 const REQUEST_TIMEOUT_MS = 20_000;
 
 /** Status codes that warrant retry with backoff. */
-const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
+const RETRYABLE_STATUS_CODES = new Set([425, 429, 500, 502, 503, 504]);
 
 /** Network error codes that warrant retry. */
 const RETRYABLE_NETWORK_CODES = new Set([
@@ -37,7 +38,7 @@ function sleep(ms: number): Promise<void> {
  * Determine whether an error is retryable.
  *
  * Retryable errors include Blockfrost server errors with certain status codes
- * (429, 500, 502, 503, 504) and network-level errors (ECONNREFUSED, etc.).
+ * (425, 429, 500, 502, 503, 504) and network-level errors (ECONNREFUSED, etc.).
  */
 function isRetryableError(error: unknown): boolean {
   // Blockfrost server error with retryable status code
@@ -82,7 +83,7 @@ function isNetworkError(error: unknown): boolean {
  * Execute an async function with exponential backoff retry.
  *
  * Retry schedule: 500ms, 1000ms, 2000ms (base * 2^attempt).
- * Retries on: 429, 500, 502, 503, 504, and network errors.
+ * Retries on: 425, 429, 500, 502, 503, 504, and network errors.
  * Non-retryable errors are thrown immediately.
  *
  * After retry exhaustion:
@@ -151,7 +152,8 @@ interface BlockfrostClientOptions {
  * - Exponential backoff (500ms, 1000ms, 2000ms) on retryable errors
  * - Rate limit exhaustion mapped to ChainRateLimitedError
  * - Network errors mapped to ChainConnectionError
- * - 404 on unused addresses returns empty array
+ * - 404 on unused addresses returns empty array (getAddressUtxos)
+ * - 404 on unconfirmed transactions returns null (getTransaction)
  *
  * SECURITY: The projectId (API key) is never stored as a public property,
  * never included in error messages, and never logged.
@@ -192,6 +194,37 @@ export class BlockfrostClient {
       // Blockfrost returns 404 for addresses with no UTxOs
       if (error instanceof BlockfrostServerError && error.status_code === 404) {
         return [];
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Submit a signed transaction to Blockfrost.
+   *
+   * Delegates to `this.api.txSubmit()` with retry on transient errors
+   * (425 mempool full, 429, 500-504). A 400 (invalid transaction) is NOT
+   * retried -- the caller must catch and map to a user-friendly reason.
+   */
+  async submitTransaction(cborBytes: Uint8Array): Promise<string> {
+    return withRetry(() => this.api.txSubmit(cborBytes), 'submitTransaction', this.log);
+  }
+
+  /**
+   * Fetch transaction details by hash.
+   * Returns null if the transaction is not yet confirmed (404).
+   * Follows the same 404-as-null pattern as getAddressUtxos.
+   */
+  async getTransaction(txHash: string): Promise<TxInfo | null> {
+    try {
+      return await withRetry(
+        () => this.api.txs(txHash) as Promise<TxInfo>,
+        'getTransaction',
+        this.log
+      );
+    } catch (error) {
+      if (error instanceof BlockfrostServerError && error.status_code === 404) {
+        return null;
       }
       throw error;
     }
