@@ -27,8 +27,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Project scaffolding, tooling, security baseline, and development infrastructure
 - [x] **Phase 2: Chain Provider** - Cardano blockchain interaction and UTXO state management
-- [ ] **Phase 3: Verification** - Payment signature verification and security enforcement
-- [ ] **Phase 4: Settlement** - On-chain payment submission with immediate settlement
+- [x] **Phase 3: Verification** - Payment signature verification and security enforcement
+- [ ] **Phase 4: Settlement** - Client-signed transaction submission with on-chain confirmation
 - [ ] **Phase 5: Stablecoins** - Multi-token support for USDM, DJED, iUSD
 - [ ] **Phase 6: Batching** - Multi-payment transaction aggregation for micropayment economics
 - [ ] **Phase 7: Storage Service** - File upload/download service gated by x402 payments
@@ -178,36 +178,40 @@ Plans:
 - [x] 03-04-PLAN.md — POST /verify route and server integration
 
 ### Phase 4: Settlement
-**Goal**: Submit verified payments to Cardano blockchain
+**Goal**: Submit client-signed Cardano transactions to the blockchain and confirm settlement
 **Depends on**: Phase 3
 **Requirements**: PROT-02, OPER-04
 
 **Deliverables:**
-- Transaction construction for single-output settlement
-- Transaction signing with facilitator key
-- Transaction submission to Blockfrost
-- Confirmation monitoring (wait for on-chain)
-- Verification proof in transaction metadata
-- /settle endpoint implementation
-- Settlement status tracking
+- Re-verify pre-signed transaction (defense-in-depth via verifyPayment)
+- Submit client's raw CBOR to Blockfrost /tx/submit
+- Confirmation polling (5s interval, 120s timeout, 1-depth confirmation)
+- Idempotency via CBOR SHA-256 dedup key in Redis (SET NX, 24h TTL)
+- POST /settle endpoint (synchronous settle-and-wait)
+- POST /status endpoint (lightweight confirmation polling)
+- BlockfrostClient extension (submitTransaction + getTransaction)
+- Settlement domain types and Zod schemas
 
 **Success Criteria** (what must be TRUE):
-  1. POST /settle submits payment transaction to Cardano blockchain
-  2. Settlement waits for on-chain confirmation before returning success
-  3. Settlement includes verification proofs in transaction metadata
-  4. Failed settlements return appropriate error with transaction details
+  1. POST /settle re-verifies, submits, and waits for on-chain confirmation before returning success
+  2. Duplicate submissions are detected and handled idempotently via Redis dedup
+  3. Settlement times out at 120 seconds with reason confirmation_timeout
+  4. POST /status checks Blockfrost for transaction confirmation status
+  5. All responses are HTTP 200 with application-level success/failure
 
 **Security Checks:**
-- [ ] Facilitator private key stored securely (env var, never logged)
-- [ ] No double-settlement possible (idempotency checks)
-- [ ] Transaction integrity verified before submission
-- [ ] Confirmation verified on correct network (mainnet vs testnet)
-- [ ] Settlement errors don't expose private key or internal state
+- [ ] No double-settlement possible (CBOR SHA-256 dedup in Redis)
+- [ ] Transaction re-verified before submission (defense-in-depth)
+- [ ] 400 errors from Blockfrost not retried (fail immediately)
+- [ ] Confirmation verified on correct network (CAIP-2 chain ID)
+- [ ] Settlement errors don't expose internal state
 
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md -- Settlement types, Zod schemas, and BlockfrostClient extension
+- [ ] 04-02-PLAN.md -- Settlement orchestrator with TDD (settlePayment + pollConfirmation)
+- [ ] 04-03-PLAN.md -- POST /settle and POST /status routes + server integration
 
 ### Phase 5: Stablecoins
 **Goal**: Accept stablecoin payments in addition to ADA
