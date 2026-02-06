@@ -339,6 +339,12 @@ describe('createBlockfrostClient', () => {
       cache: { utxoTtlSeconds: 60 },
       reservation: { ttlSeconds: 120, maxConcurrent: 20 },
       redis: { host: '127.0.0.1', port: 6379 },
+      verification: {
+        graceBufferSeconds: 30,
+        maxTimeoutSeconds: 300,
+        feeMinLovelace: 150000,
+        feeMaxLovelace: 5000000,
+      },
     };
 
     const result = createBlockfrostClient(config, logger);

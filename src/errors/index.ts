@@ -38,6 +38,9 @@ export {
   ChainNetworkMismatchError,
 } from '../chain/errors.js';
 
+// Verification errors (VERIFY_*) - re-exported from verify domain
+export { VerifyInvalidFormatError, VerifyInternalError } from '../verify/errors.js';
+
 // Type for all application errors
 export type AppError =
   | typeof ConfigInvalidError

@@ -60,6 +60,24 @@ export const ChainConfigSchema = z
         port: z.number().int().min(1).max(65535).default(6379),
       })
       .default(() => ({ host: '127.0.0.1', port: 6379 })),
+
+    verification: z
+      .object({
+        /** Grace buffer in seconds for TTL check (default 30s per locked decision) */
+        graceBufferSeconds: z.number().int().min(0).max(120).default(30),
+        /** Default max timeout in seconds (default 300s = 5 min) */
+        maxTimeoutSeconds: z.number().int().min(60).max(3600).default(300),
+        /** Minimum acceptable fee in lovelace (sanity check lower bound) */
+        feeMinLovelace: z.number().int().min(100000).max(500000).default(150000),
+        /** Maximum acceptable fee in lovelace (sanity check upper bound) */
+        feeMaxLovelace: z.number().int().min(1000000).max(10000000).default(5000000),
+      })
+      .default(() => ({
+        graceBufferSeconds: 30,
+        maxTimeoutSeconds: 300,
+        feeMinLovelace: 150000,
+        feeMaxLovelace: 5000000,
+      })),
   })
   .superRefine((data, ctx) => {
     // Mainnet safety guardrail: require explicit MAINNET=true env var
