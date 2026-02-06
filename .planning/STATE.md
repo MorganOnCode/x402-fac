@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 4 in progress -- settlement types and BlockfrostClient extension done. Orchestrator (Plan 02) next.
+**Current focus:** Phase 4 in progress -- settlement types, BlockfrostClient extension, and orchestrator done. Route wiring (Plan 03) next.
 
 ## Current Position
 
 Phase: 4 of 8 (Settlement)
-Plan: 1 of 3 in phase 4
+Plan: 2 of 3 in phase 4
 Status: In progress
-Last activity: 2026-02-06 - Completed 04-01-PLAN.md (settlement types & BlockfrostClient extension)
+Last activity: 2026-02-06 - Completed 04-02-PLAN.md (settlement orchestrator)
 
-Progress: [████████████████░░░░] 76% overall (16/21 plans complete)
-Phase 4: [███░░░░░░░] 1/3 plans complete
+Progress: [█████████████████░░░] 81% overall (17/21 plans complete)
+Phase 4: [██████░░░░] 2/3 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 5 min
-- Total execution time: 1.4 hours
+- Total execution time: 1.5 hours
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Phase 4: [███░░░░░░░] 1/3 plans complete
 | 01-foundation | 5 | 30 min | 6 min |
 | 02-chain-provider | 6 | 31 min | 5 min |
 | 03-verification | 4 | 24 min | 6 min |
-| 04-settlement | 1 | 4 min | 4 min |
+| 04-settlement | 2 | 10 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 5 min, 9 min, 5 min, 5 min, 4 min
+- Last 5 plans: 9 min, 5 min, 5 min, 4 min, 6 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -97,6 +97,9 @@ Recent decisions affecting current work:
 | TxInfo as plain interface (not Zod) | 04-01 | Only used internally for Blockfrost response typing, never validated at runtime |
 | chain/ imports settle/ for TxInfo | 04-01 | TxInfo is pure data interface with no logic; acceptable cross-module dependency |
 | 425 added to RETRYABLE_STATUS_CODES | 04-01 | Blockfrost-specific mempool congestion code, transient condition |
+| Hardcoded settlement constants (5s/120s/24h) | 04-02 | Per research -- unlikely to change, easy to extract to config later |
+| RedisLike interface (not ioredis import) | 04-02 | Minimal dependency surface; only needs set()/get(); easier to mock |
+| handleExistingRecord extracted as helper | 04-02 | Isolates dedup branch logic from happy path flow |
 
 ### Pending Todos
 
@@ -121,12 +124,12 @@ Items 3 and 8 applied to Phase 3 plans before execution. Item 3 (multi-asset Des
 
 ### Blockers/Concerns
 
-None - Plan 04-01 complete. Ready for Plan 04-02 (settle orchestrator).
+None - Plan 04-02 complete. Ready for Plan 04-03 (route wiring).
 
 ## Session Continuity
 
-Last session: 2026-02-06T15:23:00Z
-Stopped at: Completed 04-01-PLAN.md (settlement types & BlockfrostClient extension)
+Last session: 2026-02-06T15:33:00Z
+Stopped at: Completed 04-02-PLAN.md (settlement orchestrator)
 Resume file: None
 
 ## Phase 1 Completion Summary
