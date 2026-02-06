@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 3 COMPLETE -- all 4 plans done, verification pipeline operational. Phase 4 next.
+**Current focus:** Phase 4 in progress -- settlement types and BlockfrostClient extension done. Orchestrator (Plan 02) next.
 
 ## Current Position
 
-Phase: 3 of 8 (Verification) -- COMPLETE
-Plan: 4 of 4 in phase 3
-Status: Phase complete
-Last activity: 2026-02-06 - Completed 03-04-PLAN.md (POST /verify route integration)
+Phase: 4 of 8 (Settlement)
+Plan: 1 of 3 in phase 4
+Status: In progress
+Last activity: 2026-02-06 - Completed 04-01-PLAN.md (settlement types & BlockfrostClient extension)
 
-Progress: [███████████████░░░░░] 71% overall (15/21 plans complete)
-Phase 3: [██████████] 4/4 plans complete
+Progress: [████████████████░░░░] 76% overall (16/21 plans complete)
+Phase 4: [███░░░░░░░] 1/3 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 16
 - Average duration: 5 min
-- Total execution time: 1.3 hours
+- Total execution time: 1.4 hours
 
 **By Phase:**
 
@@ -31,9 +31,10 @@ Phase 3: [██████████] 4/4 plans complete
 | 01-foundation | 5 | 30 min | 6 min |
 | 02-chain-provider | 6 | 31 min | 5 min |
 | 03-verification | 4 | 24 min | 6 min |
+| 04-settlement | 1 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 5 min, 9 min, 5 min, 5 min
+- Last 5 plans: 5 min, 9 min, 5 min, 5 min, 4 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -93,6 +94,9 @@ Recent decisions affecting current work:
 | vi.mock source-relative path for integration | 03-04 | Alias @/ doesn't match module IDs for relative imports in source files |
 | beforeEach mockReset for test isolation | 03-04 | mockResolvedValueOnce state leaks across tests without explicit reset |
 | HTTP 500 only for unexpected errors | 03-04 | CML WASM crash etc.; all validation/verification failures use HTTP 200 |
+| TxInfo as plain interface (not Zod) | 04-01 | Only used internally for Blockfrost response typing, never validated at runtime |
+| chain/ imports settle/ for TxInfo | 04-01 | TxInfo is pure data interface with no logic; acceptable cross-module dependency |
+| 425 added to RETRYABLE_STATUS_CODES | 04-01 | Blockfrost-specific mempool congestion code, transient condition |
 
 ### Pending Todos
 
@@ -117,12 +121,12 @@ Items 3 and 8 applied to Phase 3 plans before execution. Item 3 (multi-asset Des
 
 ### Blockers/Concerns
 
-None - Phase 3 complete. Ready for Phase 4 (Payment Flow).
+None - Plan 04-01 complete. Ready for Plan 04-02 (settle orchestrator).
 
 ## Session Continuity
 
-Last session: 2026-02-06T13:22:34Z
-Stopped at: Completed 03-04-PLAN.md (POST /verify route integration) -- Phase 3 complete
+Last session: 2026-02-06T15:23:00Z
+Stopped at: Completed 04-01-PLAN.md (settlement types & BlockfrostClient extension)
 Resume file: None
 
 ## Phase 1 Completion Summary
