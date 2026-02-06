@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 3 in progress -- verification domain types established
+**Current focus:** Phase 3 in progress -- CBOR deserialization and verification checks complete
 
 ## Current Position
 
 Phase: 3 of 8 (Verification)
-Plan: 1 of 4 in phase 3
+Plan: 2 of 4 in phase 3
 Status: In progress
-Last activity: 2026-02-06 - Completed 03-01-PLAN.md (verification domain types)
+Last activity: 2026-02-06 - Completed 03-02-PLAN.md (CBOR deserialization + verification checks)
 
-Progress: [████████████░░░░░░░░] 57% overall (12/21 plans complete)
-Phase 3: [██░░░░░░░░] 1/4 plans complete
+Progress: [█████████████░░░░░░░] 62% overall (13/21 plans complete)
+Phase 3: [█████░░░░░] 2/4 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 5 min
-- Total execution time: 0.9 hours
+- Total execution time: 1.1 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Phase 3: [██░░░░░░░░] 1/4 plans complete
 |-------|-------|-------|----------|
 | 01-foundation | 5 | 30 min | 6 min |
 | 02-chain-provider | 6 | 31 min | 5 min |
-| 03-verification | 1 | 5 min | 5 min |
+| 03-verification | 2 | 14 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 6 min, 4 min, 9 min, 2 min, 5 min
+- Last 5 plans: 4 min, 9 min, 2 min, 5 min, 9 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -84,6 +84,10 @@ Recent decisions affecting current work:
 | Zod v4 record requires two args | 03-01 | z.record(key, value) not z.record(value) in Zod v4 |
 | VERIFY errors use HTTP 200 | 03-01 | VerifyInvalidFormatError returns 200 per locked "always HTTP 200" decision |
 | Verification config in ChainConfig | 03-01 | Chain-specific settings (fee bounds, grace buffer, timeouts) |
+| Address comparison via hex not bech32 | 03-02 | Same address can have different bech32 representations; hex is canonical |
+| CML Address.to_hex() not to_cbor_hex() | 03-02 | CML Address class has to_hex(), to_cbor_hex() exists on other types |
+| Pipeline state on mutable VerifyContext | 03-02 | _parsedTx, _matchingOutputIndex, _matchingOutputAmount avoid redundant parsing |
+| Base64 regex validation before decode | 03-02 | Catches invalid characters early with distinct error message |
 
 ### Pending Todos
 
@@ -104,16 +108,16 @@ Recent decisions affecting current work:
 | 11 | Document masumi native token format for Phase 5 | Moderate | 5 |
 | 12 | Phase 6 batching incompatibility confirmed | Minor | 6 |
 
-Items 3 and 8 applied to Phase 3 plans before execution. Items 1-2, 4-7, 9 captured in Phase 4 pre-planning note.
+Items 3 and 8 applied to Phase 3 plans before execution. Item 3 (multi-asset DeserializedTx) now implemented in 03-02. Items 1-2, 4-7, 9 captured in Phase 4 pre-planning note.
 
 ### Blockers/Concerns
 
-None - Phase 3 in progress. Plan 01 (domain types) complete. Ready for Plan 02 (CBOR deserialization).
+None - Phase 3 in progress. Plans 01-02 complete. Ready for Plan 03 (verification orchestrator).
 
 ## Session Continuity
 
-Last session: 2026-02-06T12:50:56Z
-Stopped at: Completed 03-01-PLAN.md (verification domain types)
+Last session: 2026-02-06T13:05:45Z
+Stopped at: Completed 03-02-PLAN.md (CBOR deserialization + verification checks)
 Resume file: None
 
 ## Phase 1 Completion Summary
