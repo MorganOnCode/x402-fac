@@ -10,6 +10,7 @@ import type { Config } from './config/index.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { requestLoggerPlugin } from './plugins/request-logger.js';
 import { healthRoutesPlugin } from './routes/health.js';
+import { verifyRoutesPlugin } from './routes/verify.js';
 
 // Import types to ensure augmentation is loaded
 import './types/index.js';
@@ -99,6 +100,7 @@ export async function createServer(options: CreateServerOptions): Promise<Fastif
 
   // Routes
   await server.register(healthRoutesPlugin);
+  await server.register(verifyRoutesPlugin);
 
   return server;
 }
