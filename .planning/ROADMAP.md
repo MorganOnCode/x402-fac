@@ -172,10 +172,10 @@ Plans:
 **Plans**: 4 plans in 4 waves
 
 Plans:
-- [ ] 03-01-PLAN.md — Verification types, Zod schemas, domain errors, config extension (transaction-based)
-- [ ] 03-02-PLAN.md — CBOR deserialization and verification check functions (TDD)
-- [ ] 03-03-PLAN.md — Verification orchestrator with multi-error collection (TDD)
-- [ ] 03-04-PLAN.md — POST /verify route and server integration
+- [x] 03-01-PLAN.md — Verification types, Zod schemas, domain errors, config extension (transaction-based)
+- [x] 03-02-PLAN.md — CBOR deserialization and verification check functions (TDD)
+- [x] 03-03-PLAN.md — Verification orchestrator with multi-error collection (TDD)
+- [x] 03-04-PLAN.md — POST /verify route and server integration
 
 ### Phase 4: Settlement
 **Goal**: Submit verified payments to Cardano blockchain
@@ -348,7 +348,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-02-04 |
 | 2. Chain Provider | 6/6 | Complete | 2026-02-05 |
-| 3. Verification | 0/4 | Planned | - |
+| 3. Verification | 4/4 | Complete | 2026-02-06 |
 | 4. Settlement | 0/? | Not started | - |
 | 5. Stablecoins | 0/? | Not started | - |
 | 6. Batching | 0/? | Not started | - |

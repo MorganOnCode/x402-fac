@@ -17,11 +17,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Protocol
 
-- [ ] **PROT-01**: Facilitator exposes `/verify` endpoint that validates payment signatures and payer balance
+- [x] **PROT-01**: Facilitator exposes `/verify` endpoint that validates payment transactions and required outputs
 - [ ] **PROT-02**: Facilitator exposes `/settle` endpoint that submits payments to Cardano blockchain
 - [ ] **PROT-03**: Facilitator exposes `/supported` endpoint that returns supported chains, schemes, and facilitator addresses
-- [ ] **PROT-04**: Facilitator implements `exact` payment scheme for fixed amount transfers
-- [ ] **PROT-05**: Facilitator verifies CIP-8/CIP-30 Cardano message signatures
+- [x] **PROT-04**: Facilitator implements `exact` payment scheme for fixed amount transfers
+- [x] **PROT-05**: Facilitator verifies signed Cardano transactions (CBOR deserialization, output verification, witness check)
 
 ### Cardano
 
@@ -34,9 +34,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Security
 
-- [ ] **SECU-01**: Facilitator tracks used authorization nonces to prevent double-spend/replay attacks
-- [ ] **SECU-02**: Facilitator verifies chain ID binding in signatures to prevent cross-chain replay
-- [ ] **SECU-03**: Facilitator validates payment amount and timestamp against requirements and validity window
+- [x] **SECU-01**: Facilitator relies on UTXO model for inherent replay protection (each UTXO spent once, no nonce tracking needed)
+- [x] **SECU-02**: Facilitator verifies CAIP-2 chain ID and transaction network ID to prevent cross-chain replay
+- [x] **SECU-03**: Facilitator validates payment amount, TTL, and fee bounds against requirements and configuration
 - [ ] **SECU-04**: Storage service uses settle-then-work pattern for uploads (settle on-chain BEFORE storing file)
 
 ### Storage
@@ -126,20 +126,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-03 | Phase 1 | Complete |
 | FOUND-04 | Phase 1 | Complete |
 | FOUND-05 | Phase 1 | Complete |
-| PROT-01 | Phase 3 | Pending |
+| PROT-01 | Phase 3 | Complete |
 | PROT-02 | Phase 4 | Pending |
 | PROT-03 | Phase 8 | Pending |
-| PROT-04 | Phase 3 | Pending |
-| PROT-05 | Phase 3 | Pending |
+| PROT-04 | Phase 3 | Complete |
+| PROT-05 | Phase 3 | Complete |
 | CARD-01 | Phase 2 | Complete |
 | CARD-02 | Phase 2 | Complete |
 | CARD-03 | Phase 6 | Pending |
 | CARD-04 | Phase 5 | Pending |
 | CARD-05 | Phase 2 | Complete |
 | CARD-06 | Phase 2 | Complete |
-| SECU-01 | Phase 3 | Pending |
-| SECU-02 | Phase 3 | Pending |
-| SECU-03 | Phase 3 | Pending |
+| SECU-01 | Phase 3 | Complete |
+| SECU-02 | Phase 3 | Complete |
+| SECU-03 | Phase 3 | Complete |
 | SECU-04 | Phase 7 | Pending |
 | STOR-01 | Phase 7 | Pending |
 | STOR-02 | Phase 7 | Pending |
@@ -161,4 +161,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-04*
-*Last updated: 2026-02-04 after roadmap creation*
+*Last updated: 2026-02-06 after Phase 3 completion*
