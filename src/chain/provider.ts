@@ -112,6 +112,14 @@ export class ChainProvider {
   }
 
   /**
+   * Public accessor for the BlockfrostClient instance.
+   * Used by settle/status routes for transaction submission and queries.
+   */
+  get blockfrostClient(): BlockfrostClient {
+    return this.blockfrost;
+  }
+
+  /**
    * Get UTXOs for an address with cache-first strategy.
    * Checks cache first; on miss, queries Blockfrost and caches the result.
    */
