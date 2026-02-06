@@ -18,7 +18,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Protocol
 
 - [x] **PROT-01**: Facilitator exposes `/verify` endpoint that validates payment transactions and required outputs
-- [ ] **PROT-02**: Facilitator exposes `/settle` endpoint that submits payments to Cardano blockchain
+- [x] **PROT-02**: Facilitator exposes `/settle` endpoint that submits payments to Cardano blockchain
 - [ ] **PROT-03**: Facilitator exposes `/supported` endpoint that returns supported chains, schemes, and facilitator addresses
 - [x] **PROT-04**: Facilitator implements `exact` payment scheme for fixed amount transfers
 - [x] **PROT-05**: Facilitator verifies signed Cardano transactions (CBOR deserialization, output verification, witness check)
@@ -52,7 +52,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **OPER-01**: Facilitator supports JSON configuration file for server settings
 - [x] **OPER-02**: Facilitator exposes `/health` endpoint for monitoring
 - [x] **OPER-03**: Facilitator logs requests and responses for debugging
-- [ ] **OPER-04**: Facilitator includes security testing and verification proofs in settlement
+- [x] **OPER-04**: Facilitator includes security testing and verification proofs in settlement
 
 ### Documentation
 
@@ -127,7 +127,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-04 | Phase 1 | Complete |
 | FOUND-05 | Phase 1 | Complete |
 | PROT-01 | Phase 3 | Complete |
-| PROT-02 | Phase 4 | Pending |
+| PROT-02 | Phase 4 | Complete |
 | PROT-03 | Phase 8 | Pending |
 | PROT-04 | Phase 3 | Complete |
 | PROT-05 | Phase 3 | Complete |
@@ -149,7 +149,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPER-01 | Phase 1 | Complete |
 | OPER-02 | Phase 1 | Complete |
 | OPER-03 | Phase 1 | Complete |
-| OPER-04 | Phase 4 | Pending |
+| OPER-04 | Phase 4 | Complete |
 | DOCS-01 | Phase 8 | Pending |
 | DOCS-02 | Phase 8 | Pending |
 | DOCS-03 | Phase 8 | Pending |
@@ -161,4 +161,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-04*
-*Last updated: 2026-02-06 after Phase 3 completion*
+*Last updated: 2026-02-06 after Phase 4 completion*

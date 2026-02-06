@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - Project scaffolding, tooling, security baseline, and development infrastructure
 - [x] **Phase 2: Chain Provider** - Cardano blockchain interaction and UTXO state management
 - [x] **Phase 3: Verification** - Payment signature verification and security enforcement
-- [ ] **Phase 4: Settlement** - Client-signed transaction submission with on-chain confirmation
+- [x] **Phase 4: Settlement** - Client-signed transaction submission with on-chain confirmation
 - [ ] **Phase 5: Stablecoins** - Multi-token support for USDM, DJED, iUSD
 - [ ] **Phase 6: Batching** - Multi-payment transaction aggregation for micropayment economics
 - [ ] **Phase 7: Storage Service** - File upload/download service gated by x402 payments
@@ -209,9 +209,9 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 04-01-PLAN.md -- Settlement types, Zod schemas, and BlockfrostClient extension
-- [ ] 04-02-PLAN.md -- Settlement orchestrator with TDD (settlePayment + pollConfirmation)
-- [ ] 04-03-PLAN.md -- POST /settle and POST /status routes + server integration
+- [x] 04-01-PLAN.md -- Settlement types, Zod schemas, and BlockfrostClient extension
+- [x] 04-02-PLAN.md -- Settlement orchestrator with TDD (settlePayment + pollConfirmation)
+- [x] 04-03-PLAN.md -- POST /settle and POST /status routes + server integration
 
 ### Phase 5: Stablecoins
 **Goal**: Accept stablecoin payments in addition to ADA
@@ -353,7 +353,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 1. Foundation | 5/5 | Complete | 2026-02-04 |
 | 2. Chain Provider | 6/6 | Complete | 2026-02-05 |
 | 3. Verification | 4/4 | Complete | 2026-02-06 |
-| 4. Settlement | 0/? | Not started | - |
+| 4. Settlement | 3/3 | Complete | 2026-02-06 |
 | 5. Stablecoins | 0/? | Not started | - |
 | 6. Batching | 0/? | Not started | - |
 | 7. Storage Service | 0/? | Not started | - |
