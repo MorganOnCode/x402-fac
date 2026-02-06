@@ -29,7 +29,23 @@ export type {
 // Domain errors
 export { VerifyInvalidFormatError, VerifyInternalError } from './errors.js';
 
-// Future exports (Plans 02-04):
-// export { deserializeCbor, ... } from './cbor.js';        // Plan 02
-// export { checkScheme, checkNetwork, ... } from './checks.js';  // Plan 03
-// export { verifyPayment } from './verify-payment.js';     // Plan 04
+// CBOR deserialization (Plan 02)
+export { deserializeTransaction } from './cbor.js';
+export type { DeserializedTx } from './cbor.js';
+
+// Verification checks (Plan 02)
+export {
+  checkCborValid,
+  checkScheme,
+  checkNetwork,
+  checkRecipient,
+  checkAmount,
+  checkWitness,
+  checkTtl,
+  checkFee,
+  VERIFICATION_CHECKS,
+} from './checks.js';
+
+// Future exports (Plans 03-04):
+// export { verifyPayment } from './verify-payment.js';     // Plan 03
+// export { verifyRoute } from '../routes/verify.js';       // Plan 04
