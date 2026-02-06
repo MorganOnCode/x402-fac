@@ -480,10 +480,19 @@ function deserializeTx(base64Cbor: string): DeserializedTx {
   const outputs: DeserializedTx['body']['outputs'] = [];
   for (let i = 0; i < outputList.len(); i++) {
     const output = outputList.get(i);
+    // Extract multi-asset map for Phase 5 forward compatibility
+    const assets: Record<string, bigint> = {};
+    const multiAsset = output.amount().multi_asset();
+    if (multiAsset) {
+      // Iterate policies and asset names to build policyId+assetNameHex → quantity map
+      // CML API: multiAsset.keys() → PolicyIdList, then multiAsset.get(policyId) → AssetNameMap
+    }
     outputs.push({
+      addressCborHex: output.address().to_cbor_hex(),
       addressBech32: output.address().to_bech32(),
       lovelace: output.amount().coin(),
-      hasMultiassets: output.amount().has_multiassets(),
+      assets,
+      networkId: output.address().network_id(),
     });
   }
 
@@ -528,7 +537,7 @@ const PaymentRequirementsSchema = z.object({
   scheme: z.literal('exact'),
   network: Caip2NetworkSchema,
   asset: z.string(),              // "lovelace" or policyId+assetName hex
-  amount: z.string(),             // uint as string (bigint-safe)
+  maxAmountRequired: z.string(),  // uint as string (bigint-safe), named per x402 spec
   payTo: z.string(),              // bech32 Cardano address
   maxTimeoutSeconds: z.number().int().positive(),
   extra: z.record(z.unknown()).optional(),
@@ -578,7 +587,7 @@ const VerifyRequestSchema = z.object({
   payer: "addr_test1qz...",
   extensions: {
     scheme: "exact",
-    amount: "2000000",
+    maxAmountRequired: "2000000",
     payTo: "addr_test1qx...",
     txHash: "abc123..."   // hash of the verified transaction
   }

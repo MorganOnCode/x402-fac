@@ -82,11 +82,28 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None currently.
+12 todos in `.planning/todos/pending/` (created 2026-02-06 from masumi gap analysis):
+
+| # | Title | Priority | Phase |
+|---|-------|----------|-------|
+| 1 | Rewrite Phase 4 deliverables for tx-based model | Critical | 4 |
+| 2 | Add /status endpoint for async settlement polling | Critical | 4 |
+| 3 | Add multi-asset data to DeserializedTx output type | Critical | 3 |
+| 4 | Implement settlement idempotency via CBOR hash | Important | 4 |
+| 5 | Define HTTP 202 pending response format | Important | 4 |
+| 6 | Add submitTransaction() to BlockfrostClient | Important | 4 |
+| 7 | Support X-PAYMENT-RESPONSE header | Important | 4 |
+| 8 | Rename amount to maxAmountRequired | Important | 3 |
+| 9 | Note facilitator wallet not needed for settlement | Moderate | 4 |
+| 10 | Consider moving /supported endpoint earlier | Moderate | 8 |
+| 11 | Document masumi native token format for Phase 5 | Moderate | 5 |
+| 12 | Phase 6 batching incompatibility confirmed | Minor | 6 |
+
+Items 3 and 8 applied to Phase 3 plans before execution. Items 1-2, 4-7, 9 captured in Phase 4 pre-planning note.
 
 ### Blockers/Concerns
 
-None - Phase 2 complete (including gap closure). Ready for Phase 3 (Verification Layer).
+None - Phase 2 complete. Phase 3 plans updated with masumi gap analysis findings. Ready for Phase 3 execution.
 
 ## Session Continuity
 
