@@ -7,6 +7,7 @@
 
 import { z } from 'zod';
 
+import type { DeserializedTx } from './cbor.js';
 import type { CardanoNetwork } from '../chain/types.js';
 
 // ---------------------------------------------------------------------------
@@ -186,6 +187,14 @@ export interface VerifyContext {
   feeMin: bigint;
   /** Maximum acceptable fee in lovelace (from config) */
   feeMax: bigint;
+
+  // Pipeline state (set by earlier checks, consumed by later checks)
+  /** Parsed transaction set by checkCborValid, consumed by all subsequent checks */
+  _parsedTx?: DeserializedTx;
+  /** Index of the matching output, set by checkRecipient */
+  _matchingOutputIndex?: number;
+  /** Lovelace amount of the matching output, set by checkRecipient */
+  _matchingOutputAmount?: bigint;
 }
 
 /**

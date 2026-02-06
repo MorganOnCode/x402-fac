@@ -1,0 +1,456 @@
+// Unit tests for all eight verification check functions
+//
+// Each check is tested independently using mock DeserializedTx objects
+// on ctx._parsedTx, isolating check logic from CML.
+
+import { describe, expect, it, vi } from 'vitest';
+
+import type { DeserializedTx } from '../../../src/verify/cbor.js';
+import {
+  checkAmount,
+  checkCborValid,
+  checkFee,
+  checkNetwork,
+  checkRecipient,
+  checkScheme,
+  checkTtl,
+  checkWitness,
+  VERIFICATION_CHECKS,
+} from '../../../src/verify/checks.js';
+import type { VerifyContext } from '../../../src/verify/types.js';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Create a minimal VerifyContext with sensible defaults. */
+function makeCtx(overrides: Partial<VerifyContext> = {}): VerifyContext {
+  return {
+    scheme: 'exact',
+    network: 'cardano:preview',
+    payTo:
+      'addr_test1qz424242424242424242424242424242424242424242424mhwamhwamhwamhwamhwamhwamhwamhwamhwamhwamhwasmdp8x6',
+    requiredAmount: 2_000_000n,
+    maxTimeoutSeconds: 300,
+    transactionCbor: 'dummybase64',
+    requestedAt: Date.now(),
+    getCurrentSlot: vi.fn().mockResolvedValue(1000),
+    configuredNetwork: 'cardano:preview',
+    feeMin: 150_000n,
+    feeMax: 5_000_000n,
+    ...overrides,
+  };
+}
+
+/** Create a minimal mock DeserializedTx. */
+function makeParsedTx(overrides: Partial<DeserializedTx> = {}): DeserializedTx {
+  return {
+    cborHex: 'deadbeef',
+    body: {
+      inputs: [{ txHash: 'a'.repeat(64), index: 0n }],
+      outputs: [
+        {
+          addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+          addressBech32:
+            'addr_test1qz424242424242424242424242424242424242424242424mhwamhwamhwamhwamhwamhwamhwamhwamhwamhwamhwasmdp8x6',
+          lovelace: 2_000_000n,
+          assets: {},
+          networkId: 0,
+        },
+      ],
+      fee: 200_000n,
+      ttl: undefined,
+      networkId: 0,
+    },
+    hasWitnesses: true,
+    txHash: 'a'.repeat(64),
+    ...overrides,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// checkCborValid
+// ---------------------------------------------------------------------------
+
+describe('checkCborValid', () => {
+  it('passes on valid CBOR transaction and sets ctx._parsedTx', async () => {
+    // Use a real base64 CBOR fixture built from CML in the cbor.test.ts helpers
+    // For unit tests, we test via the actual deserialize path
+    const { CML } = await import('@lucid-evolution/lucid');
+    const keyHash = CML.Ed25519KeyHash.from_hex('a'.repeat(56));
+    const stakeKeyHash = CML.Ed25519KeyHash.from_hex('b'.repeat(56));
+    const addr = CML.BaseAddress.new(
+      0,
+      CML.Credential.new_pub_key(keyHash),
+      CML.Credential.new_pub_key(stakeKeyHash)
+    ).to_address();
+
+    const inputList = CML.TransactionInputList.new();
+    inputList.add(CML.TransactionInput.new(CML.TransactionHash.from_hex('a'.repeat(64)), 0n));
+    const outputList = CML.TransactionOutputList.new();
+    outputList.add(CML.TransactionOutput.new(addr, CML.Value.from_coin(2_000_000n)));
+    const txBody = CML.TransactionBody.new(inputList, outputList, 200_000n);
+    const ws = CML.TransactionWitnessSet.new();
+    const tx = CML.Transaction.new(txBody, ws, true);
+    const base64 = Buffer.from(tx.to_cbor_hex(), 'hex').toString('base64');
+    tx.free();
+
+    const ctx = makeCtx({ transactionCbor: base64 });
+    const result = checkCborValid(ctx);
+
+    expect(result.check).toBe('cbor_valid');
+    expect(result.passed).toBe(true);
+    expect(ctx._parsedTx).toBeDefined();
+    expect(ctx._parsedTx!.body.fee).toBe(200_000n);
+  });
+
+  it('fails with invalid_base64 on bad base64', () => {
+    const ctx = makeCtx({ transactionCbor: 'not-valid-base64!!!' });
+    const result = checkCborValid(ctx);
+
+    expect(result.check).toBe('cbor_valid');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('invalid_base64');
+  });
+
+  it('fails with invalid_cbor on garbage hex', () => {
+    // Valid base64 but not valid CBOR
+    const ctx = makeCtx({
+      transactionCbor: Buffer.from('deadbeef', 'hex').toString('base64'),
+    });
+    const result = checkCborValid(ctx);
+
+    expect(result.check).toBe('cbor_valid');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('invalid_cbor');
+    expect(result.details).toHaveProperty('error');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkScheme
+// ---------------------------------------------------------------------------
+
+describe('checkScheme', () => {
+  it('passes when scheme is exact', () => {
+    const ctx = makeCtx({ scheme: 'exact' });
+    const result = checkScheme(ctx);
+    expect(result.check).toBe('scheme');
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails on unsupported scheme', () => {
+    const ctx = makeCtx({ scheme: 'threshold' });
+    const result = checkScheme(ctx);
+    expect(result.check).toBe('scheme');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('unsupported_scheme');
+    expect(result.details).toEqual({ scheme: 'threshold' });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkNetwork
+// ---------------------------------------------------------------------------
+
+describe('checkNetwork', () => {
+  it('passes when networks match (testnet)', () => {
+    const ctx = makeCtx({
+      network: 'cardano:preview',
+      configuredNetwork: 'cardano:preview',
+    });
+    ctx._parsedTx = makeParsedTx({ body: { ...makeParsedTx().body, networkId: 0 } });
+    const result = checkNetwork(ctx);
+    expect(result.check).toBe('network');
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails when CAIP-2 networks mismatch', () => {
+    const ctx = makeCtx({
+      network: 'cardano:mainnet',
+      configuredNetwork: 'cardano:preview',
+    });
+    ctx._parsedTx = makeParsedTx();
+    const result = checkNetwork(ctx);
+    expect(result.check).toBe('network');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('network_mismatch');
+  });
+
+  it('fails when tx output addresses have wrong network ID', () => {
+    const ctx = makeCtx({
+      network: 'cardano:mainnet',
+      configuredNetwork: 'cardano:mainnet',
+    });
+    // Tx has testnet addresses (networkId 0) but configured for mainnet
+    ctx._parsedTx = makeParsedTx({ body: { ...makeParsedTx().body, networkId: 0 } });
+    const result = checkNetwork(ctx);
+    expect(result.check).toBe('network');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('network_mismatch');
+  });
+
+  it('returns cbor_required when _parsedTx is missing', () => {
+    const ctx = makeCtx();
+    // ctx._parsedTx is undefined
+    const result = checkNetwork(ctx);
+    expect(result.check).toBe('network');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('cbor_required');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkRecipient
+// ---------------------------------------------------------------------------
+
+describe('checkRecipient', () => {
+  it('passes when matching output found', () => {
+    const ctx = makeCtx({
+      payTo:
+        'addr_test1qz424242424242424242424242424242424242424242424mhwamhwamhwamhwamhwamhwamhwamhwamhwamhwamhwasmdp8x6',
+    });
+    ctx._parsedTx = makeParsedTx();
+    const result = checkRecipient(ctx);
+    expect(result.check).toBe('recipient');
+    expect(result.passed).toBe(true);
+    expect(ctx._matchingOutputIndex).toBe(0);
+    expect(ctx._matchingOutputAmount).toBe(2_000_000n);
+  });
+
+  it('fails when no matching output found', () => {
+    const ctx = makeCtx({
+      payTo:
+        'addr_test1qrxvenxvenxvenxvenxvenxvenxvenxvenxvenxvenxven9mhwamhwamhwamhwamhwamhwamhwamhwamhwamhwamhwasm2jhls',
+    });
+    ctx._parsedTx = makeParsedTx();
+    const result = checkRecipient(ctx);
+    expect(result.check).toBe('recipient');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('recipient_mismatch');
+  });
+
+  it('finds matching output in multi-output transaction', () => {
+    const ctx = makeCtx({
+      payTo:
+        'addr_test1qrxvenxvenxvenxvenxvenxvenxvenxvenxvenxvenxven9mhwamhwamhwamhwamhwamhwamhwamhwamhwamhwamhwasm2jhls',
+    });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            // First output does NOT match
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32:
+              'addr_test1qz424242424242424242424242424242424242424242424mhwamhwamhwamhwamhwamhwamhwamhwamhwamhwamhwasmdp8x6',
+            lovelace: 1_000_000n,
+            assets: {},
+            networkId: 0,
+          },
+          {
+            // Second output DOES match
+            addressHex: '00' + 'cc'.repeat(28) + 'bb'.repeat(28),
+            addressBech32:
+              'addr_test1qrxvenxvenxvenxvenxvenxvenxvenxvenxvenxvenxven9mhwamhwamhwamhwamhwamhwamhwamhwamhwamhwamhwasm2jhls',
+            lovelace: 3_000_000n,
+            assets: {},
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    const result = checkRecipient(ctx);
+    expect(result.passed).toBe(true);
+    expect(ctx._matchingOutputIndex).toBe(1);
+    expect(ctx._matchingOutputAmount).toBe(3_000_000n);
+  });
+
+  it('returns cbor_required when _parsedTx is missing', () => {
+    const ctx = makeCtx();
+    const result = checkRecipient(ctx);
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('cbor_required');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkAmount
+// ---------------------------------------------------------------------------
+
+describe('checkAmount', () => {
+  it('passes when exact amount matches', () => {
+    const ctx = makeCtx({ requiredAmount: 2_000_000n });
+    ctx._parsedTx = makeParsedTx();
+    ctx._matchingOutputIndex = 0;
+    ctx._matchingOutputAmount = 2_000_000n;
+    const result = checkAmount(ctx);
+    expect(result.check).toBe('amount');
+    expect(result.passed).toBe(true);
+  });
+
+  it('passes when overpaid', () => {
+    const ctx = makeCtx({ requiredAmount: 1_000_000n });
+    ctx._matchingOutputIndex = 0;
+    ctx._matchingOutputAmount = 2_000_000n;
+    const result = checkAmount(ctx);
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails when insufficient', () => {
+    const ctx = makeCtx({ requiredAmount: 5_000_000n });
+    ctx._matchingOutputIndex = 0;
+    ctx._matchingOutputAmount = 2_000_000n;
+    const result = checkAmount(ctx);
+    expect(result.check).toBe('amount');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('amount_insufficient');
+    expect(result.details).toHaveProperty('expected');
+    expect(result.details).toHaveProperty('actual');
+  });
+
+  it('fails when no matching output was found', () => {
+    const ctx = makeCtx();
+    // _matchingOutputIndex and _matchingOutputAmount are undefined
+    const result = checkAmount(ctx);
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('amount_insufficient');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkWitness
+// ---------------------------------------------------------------------------
+
+describe('checkWitness', () => {
+  it('passes when witnesses are present', () => {
+    const ctx = makeCtx();
+    ctx._parsedTx = makeParsedTx({ hasWitnesses: true });
+    const result = checkWitness(ctx);
+    expect(result.check).toBe('witness');
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails when witnesses are absent', () => {
+    const ctx = makeCtx();
+    ctx._parsedTx = makeParsedTx({ hasWitnesses: false });
+    const result = checkWitness(ctx);
+    expect(result.check).toBe('witness');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('missing_witness');
+  });
+
+  it('returns cbor_required when _parsedTx is missing', () => {
+    const ctx = makeCtx();
+    const result = checkWitness(ctx);
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('cbor_required');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkTtl
+// ---------------------------------------------------------------------------
+
+describe('checkTtl', () => {
+  it('passes when no TTL is set (skip)', async () => {
+    const ctx = makeCtx();
+    ctx._parsedTx = makeParsedTx({ body: { ...makeParsedTx().body, ttl: undefined } });
+    const result = await checkTtl(ctx);
+    expect(result.check).toBe('ttl');
+    expect(result.passed).toBe(true);
+  });
+
+  it('passes when TTL is in the future', async () => {
+    const ctx = makeCtx({
+      getCurrentSlot: vi.fn().mockResolvedValue(1000),
+    });
+    ctx._parsedTx = makeParsedTx({ body: { ...makeParsedTx().body, ttl: 2000n } });
+    const result = await checkTtl(ctx);
+    expect(result.check).toBe('ttl');
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails when TTL is in the past', async () => {
+    const ctx = makeCtx({
+      getCurrentSlot: vi.fn().mockResolvedValue(5000),
+    });
+    ctx._parsedTx = makeParsedTx({ body: { ...makeParsedTx().body, ttl: 1000n } });
+    const result = await checkTtl(ctx);
+    expect(result.check).toBe('ttl');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('transaction_expired');
+    expect(result.details).toHaveProperty('ttl');
+    expect(result.details).toHaveProperty('currentSlot');
+  });
+
+  it('returns cbor_required when _parsedTx is missing', async () => {
+    const ctx = makeCtx();
+    const result = await checkTtl(ctx);
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('cbor_required');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkFee
+// ---------------------------------------------------------------------------
+
+describe('checkFee', () => {
+  it('passes when fee is in range', () => {
+    const ctx = makeCtx({ feeMin: 150_000n, feeMax: 5_000_000n });
+    ctx._parsedTx = makeParsedTx({ body: { ...makeParsedTx().body, fee: 200_000n } });
+    const result = checkFee(ctx);
+    expect(result.check).toBe('fee');
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails when fee is too low', () => {
+    const ctx = makeCtx({ feeMin: 150_000n, feeMax: 5_000_000n });
+    ctx._parsedTx = makeParsedTx({ body: { ...makeParsedTx().body, fee: 100_000n } });
+    const result = checkFee(ctx);
+    expect(result.check).toBe('fee');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('unreasonable_fee');
+    expect(result.details).toHaveProperty('fee');
+    expect(result.details).toHaveProperty('min');
+    expect(result.details).toHaveProperty('max');
+  });
+
+  it('fails when fee is too high', () => {
+    const ctx = makeCtx({ feeMin: 150_000n, feeMax: 5_000_000n });
+    ctx._parsedTx = makeParsedTx({ body: { ...makeParsedTx().body, fee: 10_000_000n } });
+    const result = checkFee(ctx);
+    expect(result.check).toBe('fee');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('unreasonable_fee');
+  });
+
+  it('returns cbor_required when _parsedTx is missing', () => {
+    const ctx = makeCtx();
+    const result = checkFee(ctx);
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('cbor_required');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// VERIFICATION_CHECKS array
+// ---------------------------------------------------------------------------
+
+describe('VERIFICATION_CHECKS', () => {
+  it('exports an array of 8 check functions', () => {
+    expect(VERIFICATION_CHECKS).toHaveLength(8);
+  });
+
+  it('has checks in the correct order', () => {
+    expect(VERIFICATION_CHECKS[0]).toBe(checkCborValid);
+    expect(VERIFICATION_CHECKS[1]).toBe(checkScheme);
+    expect(VERIFICATION_CHECKS[2]).toBe(checkNetwork);
+    expect(VERIFICATION_CHECKS[3]).toBe(checkRecipient);
+    expect(VERIFICATION_CHECKS[4]).toBe(checkAmount);
+    expect(VERIFICATION_CHECKS[5]).toBe(checkWitness);
+    expect(VERIFICATION_CHECKS[6]).toBe(checkTtl);
+    expect(VERIFICATION_CHECKS[7]).toBe(checkFee);
+  });
+});
