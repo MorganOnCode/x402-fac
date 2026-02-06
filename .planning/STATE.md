@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 3 in progress -- CBOR deserialization and verification checks complete
+**Current focus:** Phase 3 in progress -- verification orchestrator complete, route integration next
 
 ## Current Position
 
 Phase: 3 of 8 (Verification)
-Plan: 2 of 4 in phase 3
+Plan: 3 of 4 in phase 3
 Status: In progress
-Last activity: 2026-02-06 - Completed 03-02-PLAN.md (CBOR deserialization + verification checks)
+Last activity: 2026-02-06 - Completed 03-03-PLAN.md (verification orchestrator)
 
-Progress: [█████████████░░░░░░░] 62% overall (13/21 plans complete)
-Phase 3: [█████░░░░░] 2/4 plans complete
+Progress: [██████████████░░░░░░] 67% overall (14/21 plans complete)
+Phase 3: [███████░░░] 3/4 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: 5 min
-- Total execution time: 1.1 hours
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Phase 3: [█████░░░░░] 2/4 plans complete
 |-------|-------|-------|----------|
 | 01-foundation | 5 | 30 min | 6 min |
 | 02-chain-provider | 6 | 31 min | 5 min |
-| 03-verification | 2 | 14 min | 7 min |
+| 03-verification | 3 | 19 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 9 min, 2 min, 5 min, 9 min
+- Last 5 plans: 9 min, 2 min, 5 min, 9 min, 5 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -88,6 +88,8 @@ Recent decisions affecting current work:
 | CML Address.to_hex() not to_cbor_hex() | 03-02 | CML Address class has to_hex(), to_cbor_hex() exists on other types |
 | Pipeline state on mutable VerifyContext | 03-02 | _parsedTx, _matchingOutputIndex, _matchingOutputAmount avoid redundant parsing |
 | Base64 regex validation before decode | 03-02 | Catches invalid characters early with distinct error message |
+| vi.resetModules() for mock isolation | 03-03 | Vitest caches modules; resetModules() required before doMock + dynamic import |
+| Fallback ?? 'unknown' over non-null ! | 03-03 | ESLint no-non-null-assertion; defensive even though failed checks always have reason |
 
 ### Pending Todos
 
@@ -112,12 +114,12 @@ Items 3 and 8 applied to Phase 3 plans before execution. Item 3 (multi-asset Des
 
 ### Blockers/Concerns
 
-None - Phase 3 in progress. Plans 01-02 complete. Ready for Plan 03 (verification orchestrator).
+None - Phase 3 in progress. Plans 01-03 complete. Ready for Plan 04 (verify route).
 
 ## Session Continuity
 
-Last session: 2026-02-06T13:05:45Z
-Stopped at: Completed 03-02-PLAN.md (CBOR deserialization + verification checks)
+Last session: 2026-02-06T13:14:37Z
+Stopped at: Completed 03-03-PLAN.md (verification orchestrator)
 Resume file: None
 
 ## Phase 1 Completion Summary
