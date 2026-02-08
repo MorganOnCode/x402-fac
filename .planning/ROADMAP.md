@@ -214,23 +214,27 @@ Plans:
 - [x] 04-03-PLAN.md -- POST /settle and POST /status routes + server integration
 
 ### Phase 5: Stablecoins
-**Goal**: Accept stablecoin payments in addition to ADA
+**Goal**: Accept stablecoin payments (USDM, DJED, iUSD) in addition to ADA
 **Depends on**: Phase 4
 **Requirements**: CARD-04
 
 **Deliverables:**
-- Token policy ID registry (USDM, DJED, iUSD)
-- Token balance checking
-- Multi-asset transaction construction
-- Token decimal handling (normalize to base units)
-- Min UTXO ADA calculation for token outputs
-- Updated /verify and /settle for token payments
+- Hardcoded token policy ID registry (USDM, DJED, iUSD) as security gate
+- Token validation check in verification pipeline (reject unknown tokens)
+- Modified amount check branching on ADA vs token payments
+- Min UTXO ADA check for all output types
+- Extended VerifyContext with asset and getMinUtxoLovelace
+- Updated /verify and /settle routes for token payment threading
+- Backward-compatible PaymentRequirements (asset defaults to 'lovelace')
 
 **Success Criteria** (what must be TRUE):
   1. Facilitator accepts USDM as payment currency
   2. Facilitator accepts DJED as payment currency
   3. Facilitator accepts iUSD as payment currency
-  4. Token outputs include required min UTXO ADA automatically
+  4. Unsupported/unknown tokens are rejected with 'unsupported_token' reason
+  5. Token amounts verified from transaction output assets map
+  6. Min UTXO ADA validated for all payment types (ADA and token)
+  7. Existing ADA payments continue to work unchanged (backward compatible)
 
 **Security Checks:**
 - [ ] Token policy IDs validated against known-good list
@@ -239,10 +243,12 @@ Plans:
 - [ ] Fake token rejection (only whitelisted policy IDs accepted)
 - [ ] Token metadata verified from on-chain source
 
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md — Token registry, VerifyContext extension, failure messages
+- [ ] 05-02-PLAN.md — Token verification checks with TDD (token_supported, amount branching, min_utxo)
+- [ ] 05-03-PLAN.md — Route integration and end-to-end token payment tests
 
 ### Phase 6: Batching
 **Goal**: Aggregate multiple payments into single transactions for economic viability
@@ -354,7 +360,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 2. Chain Provider | 6/6 | Complete | 2026-02-05 |
 | 3. Verification | 4/4 | Complete | 2026-02-06 |
 | 4. Settlement | 3/3 | Complete | 2026-02-06 |
-| 5. Stablecoins | 0/? | Not started | - |
+| 5. Stablecoins | 0/3 | Planned | - |
 | 6. Batching | 0/? | Not started | - |
 | 7. Storage Service | 0/? | Not started | - |
 | 8. Integration | 0/? | Not started | - |
@@ -364,5 +370,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 *Phase 1 planned: 2026-02-04*
 *Phase 2 planned: 2026-02-05*
 *Phase 3 planned: 2026-02-05*
+*Phase 5 planned: 2026-02-08*
 *Depth: comprehensive (8 phases)*
 *Requirements: 27+ v1 mapped (foundation requirements added)*
