@@ -39,10 +39,13 @@ const verifyRoutes: FastifyPluginCallback = (fastify, _options, done) => {
       payTo: paymentRequirements.payTo,
       requiredAmount: BigInt(paymentRequirements.maxAmountRequired),
       maxTimeoutSeconds: paymentRequirements.maxTimeoutSeconds,
+      asset: paymentRequirements.asset,
       transactionCbor: paymentPayload.payload.transaction,
       payerAddress: paymentPayload.payload.payer,
       requestedAt: Date.now(),
       getCurrentSlot: () => fastify.chainProvider.getCurrentSlot(),
+      getMinUtxoLovelace: (numAssets: number) =>
+        fastify.chainProvider.getMinUtxoLovelace(numAssets),
       configuredNetwork: CAIP2_CHAIN_IDS[chainConfig.network as CardanoNetwork],
       feeMin: BigInt(verificationConfig.feeMinLovelace),
       feeMax: BigInt(verificationConfig.feeMaxLovelace),

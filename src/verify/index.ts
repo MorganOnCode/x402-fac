@@ -33,13 +33,15 @@ export { VerifyInvalidFormatError, VerifyInternalError } from './errors.js';
 export { deserializeTransaction } from './cbor.js';
 export type { DeserializedTx } from './cbor.js';
 
-// Verification checks (Plan 02)
+// Verification checks (Plan 02 + Phase 5)
 export {
   checkCborValid,
   checkScheme,
   checkNetwork,
+  checkTokenSupported,
   checkRecipient,
   checkAmount,
+  checkMinUtxo,
   checkWitness,
   checkTtl,
   checkFee,
@@ -58,5 +60,3 @@ export {
   assetToUnit,
 } from './token-registry.js';
 export type { TokenEntry } from './token-registry.js';
-
-// New check functions will be exported after Plan 05-02
