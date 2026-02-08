@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 5 in progress -- Plan 01 complete (token registry + type extensions). 218 tests passing. Ready for Plan 05-02 (token verification checks).
+**Current focus:** Phase 5 in progress -- Plan 02 complete (token verification checks). 239 tests passing. Ready for Plan 05-03 (route integration).
 
 ## Current Position
 
 Phase: 5 of 8 (Stablecoins)
-Plan: 1 of 3 in phase 5
+Plan: 2 of 3 in phase 5
 Status: In progress
-Last activity: 2026-02-08 - Completed 05-01-PLAN.md (token registry + type extensions)
+Last activity: 2026-02-08 - Completed 05-02-PLAN.md (token verification checks)
 
-Progress: [███████████████████░] 90% overall (19/21 plans complete)
-Phase 5: [███░░░░░░░] 1/3 plans complete
+Progress: [████████████████████] 95% overall (20/21 plans complete)
+Phase 5: [██████░░░░] 2/3 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 19
+- Total plans completed: 20
 - Average duration: 5 min
-- Total execution time: 1.65 hours
+- Total execution time: 1.75 hours
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Phase 5: [███░░░░░░░] 1/3 plans complete
 | 02-chain-provider | 6 | 31 min | 5 min |
 | 03-verification | 4 | 24 min | 6 min |
 | 04-settlement | 3 | 14 min | 5 min |
-| 05-stablecoins | 1 | 3 min | 3 min |
+| 05-stablecoins | 2 | 9 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 5 min, 4 min, 6 min, 4 min, 3 min
+- Last 5 plans: 4 min, 6 min, 4 min, 3 min, 6 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -107,6 +107,10 @@ Recent decisions affecting current work:
 | Token registry as ReadonlyMap keyed by unit strings | 05-01 | Security gate: hardcoded tokens require code review to add |
 | Optional VerifyContext.asset and getMinUtxoLovelace | 05-01 | Incremental rollout: existing routes compile without new fields until Plan 03 |
 | PaymentRequirementsSchema.asset defaults to 'lovelace' | 05-01 | Backward compatibility for ADA-only clients that omit asset field |
+| checkAmount ADA path uses _matchingOutputAmount | 05-02 | Backward compat with existing test mocks; token path uses assets map |
+| checkMinUtxo skips when getMinUtxoLovelace absent | 05-02 | Allows existing routes to work before Plan 03 wires the callback |
+| Overpayment allowed (>=) for ADA and tokens | 05-02 | Matches existing ADA behavior; exact matching rejects legitimate txs |
+| VERIFICATION_CHECKS pipeline order (10 checks) | 05-02 | token_supported at 4 (before recipient), min_utxo at 7 (after amount) |
 
 ### Pending Todos
 
@@ -124,13 +128,13 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-None - Phase 5 Plan 01 complete. Ready for Plan 05-02 (token verification checks).
+None - Phase 5 Plan 02 complete. Ready for Plan 05-03 (route integration).
 
 ## Session Continuity
 
-Last session: 2026-02-08T09:53:49Z
-Stopped at: Completed 05-01-PLAN.md (token registry + type extensions) -- Phase 5 Plan 1 complete
-Resume file: .planning/phases/05-stablecoins/05-02-PLAN.md
+Last session: 2026-02-08T09:59:14Z
+Stopped at: Completed 05-02-PLAN.md (token verification checks) -- Phase 5 Plan 2 complete
+Resume file: .planning/phases/05-stablecoins/05-03-PLAN.md
 
 ## Phase 1 Completion Summary
 
