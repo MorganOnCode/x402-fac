@@ -10,6 +10,7 @@ import {
   checkAmount,
   checkCborValid,
   checkFee,
+  checkMinUtxo,
   checkNetwork,
   checkRecipient,
   checkScheme,
@@ -383,6 +384,317 @@ describe('checkAmount', () => {
     expect(result.passed).toBe(false);
     expect(result.reason).toBe('amount_insufficient');
   });
+
+  // Token branching tests
+  const MOCK_TOKEN_UNIT = 'cc'.repeat(28) + 'ddee'; // concatenated for assets map key
+  const MOCK_TOKEN_ASSET = 'cc'.repeat(28) + '.' + 'ddee'; // dot-separated API format
+
+  it('passes when token amount meets required amount', () => {
+    const ctx = makeCtx({ requiredAmount: 5_000_000n, asset: MOCK_TOKEN_ASSET });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 2_000_000n,
+            assets: { [MOCK_TOKEN_UNIT]: 5_000_000n },
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    ctx._matchingOutputIndex = 0;
+    const result = checkAmount(ctx);
+    expect(result.check).toBe('amount');
+    expect(result.passed).toBe(true);
+  });
+
+  it('passes when token amount exceeds required (overpayment)', () => {
+    const ctx = makeCtx({ requiredAmount: 5_000_000n, asset: MOCK_TOKEN_ASSET });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 2_000_000n,
+            assets: { [MOCK_TOKEN_UNIT]: 10_000_000n },
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    ctx._matchingOutputIndex = 0;
+    const result = checkAmount(ctx);
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails with amount_insufficient when token amount is less than required', () => {
+    const ctx = makeCtx({ requiredAmount: 5_000_000n, asset: MOCK_TOKEN_ASSET });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 2_000_000n,
+            assets: { [MOCK_TOKEN_UNIT]: 1_000_000n },
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    ctx._matchingOutputIndex = 0;
+    const result = checkAmount(ctx);
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('amount_insufficient');
+  });
+
+  it('fails with amount_insufficient when token is missing from output.assets', () => {
+    const ctx = makeCtx({ requiredAmount: 5_000_000n, asset: MOCK_TOKEN_ASSET });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 2_000_000n,
+            assets: {},
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    ctx._matchingOutputIndex = 0;
+    const result = checkAmount(ctx);
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('amount_insufficient');
+  });
+
+  it('includes asset field in token failure details', () => {
+    const ctx = makeCtx({ requiredAmount: 5_000_000n, asset: MOCK_TOKEN_ASSET });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 2_000_000n,
+            assets: { [MOCK_TOKEN_UNIT]: 1_000_000n },
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    ctx._matchingOutputIndex = 0;
+    const result = checkAmount(ctx);
+    expect(result.passed).toBe(false);
+    expect(result.details).toHaveProperty('asset', MOCK_TOKEN_ASSET);
+  });
+
+  it('ADA payment (lovelace) still uses output.lovelace (regression)', () => {
+    const ctx = makeCtx({ requiredAmount: 2_000_000n, asset: 'lovelace' });
+    ctx._matchingOutputIndex = 0;
+    ctx._matchingOutputAmount = 2_000_000n;
+    const result = checkAmount(ctx);
+    expect(result.check).toBe('amount');
+    expect(result.passed).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkMinUtxo
+// ---------------------------------------------------------------------------
+
+describe('checkMinUtxo', () => {
+  it('passes (skips) when getMinUtxoLovelace is not provided', async () => {
+    const ctx = makeCtx(); // no getMinUtxoLovelace
+    ctx._parsedTx = makeParsedTx();
+    ctx._matchingOutputIndex = 0;
+    const result = await checkMinUtxo(ctx);
+    expect(result.check).toBe('min_utxo');
+    expect(result.passed).toBe(true);
+  });
+
+  it('passes when output.lovelace >= min UTXO for ADA-only output', async () => {
+    const ctx = makeCtx({
+      asset: 'lovelace',
+      getMinUtxoLovelace: vi.fn().mockResolvedValue(1_000_000n),
+    });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 2_000_000n,
+            assets: {},
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    ctx._matchingOutputIndex = 0;
+    const result = await checkMinUtxo(ctx);
+    expect(result.check).toBe('min_utxo');
+    expect(result.passed).toBe(true);
+    expect(ctx.getMinUtxoLovelace).toHaveBeenCalledWith(0); // 0 assets
+  });
+
+  it('passes when output.lovelace >= min UTXO for token output', async () => {
+    const tokenUnit = 'dd'.repeat(28) + 'eeff';
+    const ctx = makeCtx({
+      asset: 'dd'.repeat(28) + '.' + 'eeff',
+      getMinUtxoLovelace: vi.fn().mockResolvedValue(1_200_000n),
+    });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 2_000_000n,
+            assets: { [tokenUnit]: 5_000_000n },
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    ctx._matchingOutputIndex = 0;
+    const result = await checkMinUtxo(ctx);
+    expect(result.check).toBe('min_utxo');
+    expect(result.passed).toBe(true);
+    expect(ctx.getMinUtxoLovelace).toHaveBeenCalledWith(1); // 1 asset
+  });
+
+  it('fails with min_utxo_insufficient when output.lovelace < min UTXO', async () => {
+    const ctx = makeCtx({
+      asset: 'lovelace',
+      getMinUtxoLovelace: vi.fn().mockResolvedValue(1_000_000n),
+    });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 500_000n,
+            assets: {},
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    ctx._matchingOutputIndex = 0;
+    const result = await checkMinUtxo(ctx);
+    expect(result.check).toBe('min_utxo');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('min_utxo_insufficient');
+  });
+
+  it('failure details include required and actual as strings', async () => {
+    const ctx = makeCtx({
+      asset: 'lovelace',
+      getMinUtxoLovelace: vi.fn().mockResolvedValue(1_000_000n),
+    });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 500_000n,
+            assets: {},
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    ctx._matchingOutputIndex = 0;
+    const result = await checkMinUtxo(ctx);
+    expect(result.details).toHaveProperty('required', '1000000');
+    expect(result.details).toHaveProperty('actual', '500000');
+  });
+
+  it('failure details include human-readable message', async () => {
+    const ctx = makeCtx({
+      asset: 'lovelace',
+      getMinUtxoLovelace: vi.fn().mockResolvedValue(1_000_000n),
+    });
+    ctx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 500_000n,
+            assets: {},
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    ctx._matchingOutputIndex = 0;
+    const result = await checkMinUtxo(ctx);
+    expect(result.details).toHaveProperty(
+      'message',
+      'min UTXO requires 1000000 lovelace, got 500000'
+    );
+  });
+
+  it('fails when _matchingOutputIndex is undefined (returns cbor_required)', async () => {
+    const ctx = makeCtx({
+      getMinUtxoLovelace: vi.fn().mockResolvedValue(1_000_000n),
+    });
+    ctx._parsedTx = makeParsedTx();
+    // _matchingOutputIndex is undefined
+    const result = await checkMinUtxo(ctx);
+    expect(result.check).toBe('min_utxo');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('cbor_required');
+  });
+
+  it('check name is min_utxo in all results', async () => {
+    // Pass case
+    const passCtx = makeCtx();
+    passCtx._parsedTx = makeParsedTx();
+    passCtx._matchingOutputIndex = 0;
+    const passResult = await checkMinUtxo(passCtx);
+    expect(passResult.check).toBe('min_utxo');
+
+    // Fail case
+    const failCtx = makeCtx({
+      getMinUtxoLovelace: vi.fn().mockResolvedValue(1_000_000n),
+    });
+    failCtx._parsedTx = makeParsedTx({
+      body: {
+        ...makeParsedTx().body,
+        outputs: [
+          {
+            addressHex: '00' + 'aa'.repeat(28) + 'bb'.repeat(28),
+            addressBech32: 'addr_test1qz...',
+            lovelace: 500_000n,
+            assets: {},
+            networkId: 0,
+          },
+        ],
+      },
+    });
+    failCtx._matchingOutputIndex = 0;
+    const failResult = await checkMinUtxo(failCtx);
+    expect(failResult.check).toBe('min_utxo');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -506,18 +818,20 @@ describe('checkFee', () => {
 // ---------------------------------------------------------------------------
 
 describe('VERIFICATION_CHECKS', () => {
-  it('exports an array of 8 check functions', () => {
-    expect(VERIFICATION_CHECKS).toHaveLength(8);
+  it('exports an array of 10 check functions', () => {
+    expect(VERIFICATION_CHECKS).toHaveLength(10);
   });
 
   it('has checks in the correct order', () => {
     expect(VERIFICATION_CHECKS[0]).toBe(checkCborValid);
     expect(VERIFICATION_CHECKS[1]).toBe(checkScheme);
     expect(VERIFICATION_CHECKS[2]).toBe(checkNetwork);
-    expect(VERIFICATION_CHECKS[3]).toBe(checkRecipient);
-    expect(VERIFICATION_CHECKS[4]).toBe(checkAmount);
-    expect(VERIFICATION_CHECKS[5]).toBe(checkWitness);
-    expect(VERIFICATION_CHECKS[6]).toBe(checkTtl);
-    expect(VERIFICATION_CHECKS[7]).toBe(checkFee);
+    expect(VERIFICATION_CHECKS[3]).toBe(checkTokenSupported);
+    expect(VERIFICATION_CHECKS[4]).toBe(checkRecipient);
+    expect(VERIFICATION_CHECKS[5]).toBe(checkAmount);
+    expect(VERIFICATION_CHECKS[6]).toBe(checkMinUtxo);
+    expect(VERIFICATION_CHECKS[7]).toBe(checkWitness);
+    expect(VERIFICATION_CHECKS[8]).toBe(checkTtl);
+    expect(VERIFICATION_CHECKS[9]).toBe(checkFee);
   });
 });

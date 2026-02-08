@@ -1,6 +1,6 @@
 // Verification check functions for x402 transaction-based model
 //
-// Eight individual checks that examine one aspect of a Cardano transaction
+// Ten individual checks that examine one aspect of a Cardano transaction
 // against the payment requirements. Together they form the verification
 // pipeline consumed by the orchestrator (Plan 03).
 //
@@ -174,14 +174,51 @@ export function checkRecipient(ctx: VerifyContext): CheckResult {
 }
 
 // ---------------------------------------------------------------------------
-// Check 5: Payment amount
+// Check 6: Payment amount (ADA or token)
 // ---------------------------------------------------------------------------
 
 /**
- * Validate that the matching output contains at least the required lovelace amount.
+ * Validate that the matching output contains at least the required amount.
+ *
+ * ADA path: uses ctx._matchingOutputAmount (set by checkRecipient) for
+ * backward compatibility with existing test mocks.
+ *
+ * Token path: looks up the token quantity in the output's assets map using
+ * the concatenated unit key derived from ctx.asset via assetToUnit().
+ *
+ * Overpayment allowed (>=) for both ADA and tokens.
  */
 export function checkAmount(ctx: VerifyContext): CheckResult {
-  if (ctx._matchingOutputAmount === undefined) {
+  // Determine the effective asset (default to lovelace for backward compat)
+  const asset = ctx.asset ?? LOVELACE_UNIT;
+
+  if (asset === LOVELACE_UNIT) {
+    // ADA payment: use existing _matchingOutputAmount (set by checkRecipient)
+    // This preserves backward compatibility with existing test mocks
+    if (ctx._matchingOutputAmount === undefined) {
+      return {
+        check: 'amount',
+        passed: false,
+        reason: 'amount_insufficient',
+        details: { error: 'no matching output found' },
+      };
+    }
+    if (ctx._matchingOutputAmount >= ctx.requiredAmount) {
+      return { check: 'amount', passed: true };
+    }
+    return {
+      check: 'amount',
+      passed: false,
+      reason: 'amount_insufficient',
+      details: {
+        expected: ctx.requiredAmount.toString(),
+        actual: ctx._matchingOutputAmount.toString(),
+      },
+    };
+  }
+
+  // Token payment: must use _parsedTx to access the assets map
+  if (ctx._matchingOutputIndex === undefined || !ctx._parsedTx) {
     return {
       check: 'amount',
       passed: false,
@@ -190,23 +227,71 @@ export function checkAmount(ctx: VerifyContext): CheckResult {
     };
   }
 
-  if (ctx._matchingOutputAmount >= ctx.requiredAmount) {
+  const output = ctx._parsedTx.body.outputs[ctx._matchingOutputIndex];
+  const unit = assetToUnit(asset);
+  const tokenAmount = output.assets[unit] ?? 0n;
+  if (tokenAmount >= ctx.requiredAmount) {
     return { check: 'amount', passed: true };
   }
-
   return {
     check: 'amount',
     passed: false,
     reason: 'amount_insufficient',
     details: {
       expected: ctx.requiredAmount.toString(),
-      actual: ctx._matchingOutputAmount.toString(),
+      actual: tokenAmount.toString(),
+      asset,
     },
   };
 }
 
 // ---------------------------------------------------------------------------
-// Check 6: Witness presence
+// Check 7: Min UTXO ADA
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate that the recipient output contains enough ADA for the min UTXO requirement.
+ * Applies to ALL payments (ADA and token). Token outputs require more ADA due to
+ * multi-asset serialization overhead.
+ *
+ * Uses ChainProvider.getMinUtxoLovelace(numAssets) via the ctx callback.
+ * The error includes the required amount so clients can fix their transaction.
+ *
+ * If ctx.getMinUtxoLovelace is not provided (optional field), the check passes
+ * with a skip -- this allows existing routes to work before Plan 03 wires it in.
+ */
+export async function checkMinUtxo(ctx: VerifyContext): Promise<CheckResult> {
+  // Skip if callback not provided (backward compat until Plan 03 wires it)
+  if (!ctx.getMinUtxoLovelace) {
+    return { check: 'min_utxo', passed: true };
+  }
+
+  if (ctx._matchingOutputIndex === undefined || !ctx._parsedTx) {
+    return { check: 'min_utxo', passed: false, reason: 'cbor_required' };
+  }
+
+  const output = ctx._parsedTx.body.outputs[ctx._matchingOutputIndex];
+  const numAssets = Object.keys(output.assets).length;
+  const requiredMinAda = await ctx.getMinUtxoLovelace(numAssets);
+
+  if (output.lovelace >= requiredMinAda) {
+    return { check: 'min_utxo', passed: true };
+  }
+
+  return {
+    check: 'min_utxo',
+    passed: false,
+    reason: 'min_utxo_insufficient',
+    details: {
+      required: requiredMinAda.toString(),
+      actual: output.lovelace.toString(),
+      message: `min UTXO requires ${requiredMinAda.toString()} lovelace, got ${output.lovelace.toString()}`,
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Check 8: Witness presence
 // ---------------------------------------------------------------------------
 
 /**
@@ -226,7 +311,7 @@ export function checkWitness(ctx: VerifyContext): CheckResult {
 }
 
 // ---------------------------------------------------------------------------
-// Check 7: TTL (validity interval)
+// Check 9: TTL (validity interval)
 // ---------------------------------------------------------------------------
 
 /**
@@ -264,7 +349,7 @@ export async function checkTtl(ctx: VerifyContext): Promise<CheckResult> {
 }
 
 // ---------------------------------------------------------------------------
-// Check 8: Fee reasonableness
+// Check 10: Fee reasonableness
 // ---------------------------------------------------------------------------
 
 /**
@@ -301,15 +386,19 @@ export function checkFee(ctx: VerifyContext): CheckResult {
 /**
  * All verification checks in execution order.
  * checkCborValid MUST be first (it populates ctx._parsedTx).
+ * checkTokenSupported MUST precede checkRecipient (fast rejection of unsupported tokens).
  * checkRecipient MUST precede checkAmount (it populates ctx._matchingOutputAmount).
+ * checkMinUtxo MUST follow checkAmount (needs _matchingOutputIndex).
  */
 export const VERIFICATION_CHECKS: VerifyCheck[] = [
-  checkCborValid,
-  checkScheme,
-  checkNetwork,
-  checkRecipient,
-  checkAmount,
-  checkWitness,
-  checkTtl,
-  checkFee,
+  checkCborValid, // 1. Parse CBOR
+  checkScheme, // 2. Validate scheme
+  checkNetwork, // 3. Validate network
+  checkTokenSupported, // 4. Validate asset is supported
+  checkRecipient, // 5. Find matching output
+  checkAmount, // 6. Check ADA or token amount
+  checkMinUtxo, // 7. Check min UTXO ADA
+  checkWitness, // 8. Check signatures present
+  checkTtl, // 9. Check TTL not expired
+  checkFee, // 10. Check fee bounds
 ];
