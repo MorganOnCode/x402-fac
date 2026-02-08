@@ -46,7 +46,10 @@ vi.mock('../../src/settle/settle-payment.js', () => ({
 // Test helpers
 // ---------------------------------------------------------------------------
 
-function createTestSettleRequest(overrides?: Record<string, unknown>) {
+function createTestSettleRequest(
+  paymentRequirementsOverrides?: Record<string, unknown>,
+  topLevelOverrides?: Record<string, unknown>
+) {
   return {
     transaction: 'SGVsbG8gV29ybGQ=', // valid base64
     paymentRequirements: {
@@ -57,8 +60,9 @@ function createTestSettleRequest(overrides?: Record<string, unknown>) {
       payTo:
         'addr_test1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqfjkjv7',
       maxTimeoutSeconds: 300,
+      ...paymentRequirementsOverrides,
     },
-    ...overrides,
+    ...topLevelOverrides,
   };
 }
 
@@ -72,6 +76,7 @@ describe('POST /settle Route', () => {
   const testConfig: Config = {
     server: { host: '0.0.0.0', port: 0 },
     logging: { level: 'error', pretty: false },
+    rateLimit: { global: 100, windowMs: 60000, sensitive: 20 },
     env: 'test',
     chain: {
       network: 'Preview',
@@ -301,5 +306,61 @@ describe('POST /settle Route', () => {
     });
 
     expect(response.statusCode).not.toBe(404);
+  });
+
+  // ---- Token payment tests (Phase 5) ----
+
+  it('should thread token asset into settlePayment context', async () => {
+    const usdmAsset = 'c48cbb3d5e57ed56e276bc45f99ab39abe94e6cd7ac39fb402da47ad.0014df105553444d';
+    mockSettlePayment.mockResolvedValueOnce({
+      success: true,
+      transaction: 'abc123def456789012345678901234567890123456789012345678901234abcd',
+      network: 'cardano:preview',
+    });
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/settle',
+      headers: { 'content-type': 'application/json' },
+      payload: createTestSettleRequest({ asset: usdmAsset }),
+    });
+
+    expect(response.statusCode).toBe(200);
+    const ctx = mockSettlePayment.mock.calls[0][0];
+    expect(ctx.asset).toBe(usdmAsset);
+  });
+
+  it('should default asset to lovelace when omitted from settle request', async () => {
+    mockSettlePayment.mockResolvedValueOnce({ success: true });
+
+    // Omit asset field entirely -- Zod schema default should fill in 'lovelace'
+    const payload = createTestSettleRequest();
+    delete (payload.paymentRequirements as Record<string, unknown>).asset;
+
+    await server.inject({
+      method: 'POST',
+      url: '/settle',
+      headers: { 'content-type': 'application/json' },
+      payload,
+    });
+
+    expect(mockSettlePayment).toHaveBeenCalledOnce();
+    const ctx = mockSettlePayment.mock.calls[0][0];
+    expect(ctx.asset).toBe('lovelace');
+  });
+
+  it('should provide getMinUtxoLovelace callback in settlePayment context', async () => {
+    mockSettlePayment.mockResolvedValueOnce({ success: true });
+
+    await server.inject({
+      method: 'POST',
+      url: '/settle',
+      headers: { 'content-type': 'application/json' },
+      payload: createTestSettleRequest(),
+    });
+
+    expect(mockSettlePayment).toHaveBeenCalledOnce();
+    const ctx = mockSettlePayment.mock.calls[0][0];
+    expect(typeof ctx.getMinUtxoLovelace).toBe('function');
   });
 });

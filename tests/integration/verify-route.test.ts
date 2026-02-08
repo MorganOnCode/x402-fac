@@ -47,7 +47,10 @@ vi.mock('../../src/verify/verify-payment.js', () => ({
 // Test helpers
 // ---------------------------------------------------------------------------
 
-function createTestVerifyRequest(overrides?: Record<string, unknown>) {
+function createTestVerifyRequest(
+  paymentRequirementsOverrides?: Record<string, unknown>,
+  topLevelOverrides?: Record<string, unknown>
+) {
   return {
     paymentPayload: {
       x402Version: 2,
@@ -67,8 +70,9 @@ function createTestVerifyRequest(overrides?: Record<string, unknown>) {
       payTo:
         'addr_test1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwqfjkjv7',
       maxTimeoutSeconds: 300,
+      ...paymentRequirementsOverrides,
     },
-    ...overrides,
+    ...topLevelOverrides,
   };
 }
 
@@ -82,6 +86,7 @@ describe('POST /verify Route', () => {
   const testConfig: Config = {
     server: { host: '0.0.0.0', port: 0 },
     logging: { level: 'error', pretty: false },
+    rateLimit: { global: 100, windowMs: 60000, sensitive: 20 },
     env: 'test',
     chain: {
       network: 'Preview',
@@ -210,7 +215,7 @@ describe('POST /verify Route', () => {
       method: 'POST',
       url: '/verify',
       headers: { 'content-type': 'application/json' },
-      payload: createTestVerifyRequest({
+      payload: createTestVerifyRequest(undefined, {
         paymentPayload: {
           x402Version: 1,
           scheme: 'exact',
@@ -252,7 +257,7 @@ describe('POST /verify Route', () => {
       method: 'POST',
       url: '/verify',
       headers: { 'content-type': 'application/json' },
-      payload: createTestVerifyRequest({
+      payload: createTestVerifyRequest(undefined, {
         paymentPayload: {
           x402Version: 2,
           scheme: 'exact',
@@ -310,5 +315,80 @@ describe('POST /verify Route', () => {
     });
 
     expect(response.statusCode).toBe(404);
+  });
+
+  // ---- Token payment tests (Phase 5) ----
+
+  it('should thread token asset into verifyPayment context', async () => {
+    const usdmAsset = 'c48cbb3d5e57ed56e276bc45f99ab39abe94e6cd7ac39fb402da47ad.0014df105553444d';
+    mockVerifyPayment.mockResolvedValueOnce({ isValid: true });
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/verify',
+      headers: { 'content-type': 'application/json' },
+      payload: createTestVerifyRequest({ asset: usdmAsset }),
+    });
+
+    expect(response.statusCode).toBe(200);
+    const ctx = mockVerifyPayment.mock.calls[0][0];
+    expect(ctx.asset).toBe(usdmAsset);
+  });
+
+  it('should default asset to lovelace when omitted from paymentRequirements', async () => {
+    mockVerifyPayment.mockResolvedValueOnce({ isValid: true });
+
+    // Omit asset field entirely -- Zod schema default should fill in 'lovelace'
+    const payload = createTestVerifyRequest();
+    delete (payload.paymentRequirements as Record<string, unknown>).asset;
+
+    await server.inject({
+      method: 'POST',
+      url: '/verify',
+      headers: { 'content-type': 'application/json' },
+      payload,
+    });
+
+    expect(mockVerifyPayment).toHaveBeenCalledOnce();
+    const ctx = mockVerifyPayment.mock.calls[0][0];
+    expect(ctx.asset).toBe('lovelace');
+  });
+
+  it('should provide getMinUtxoLovelace callback in verifyPayment context', async () => {
+    mockVerifyPayment.mockResolvedValueOnce({ isValid: true });
+
+    await server.inject({
+      method: 'POST',
+      url: '/verify',
+      headers: { 'content-type': 'application/json' },
+      payload: createTestVerifyRequest(),
+    });
+
+    expect(mockVerifyPayment).toHaveBeenCalledOnce();
+    const ctx = mockVerifyPayment.mock.calls[0][0];
+    expect(typeof ctx.getMinUtxoLovelace).toBe('function');
+  });
+
+  it('should surface token verification failure from verifyPayment', async () => {
+    mockVerifyPayment.mockResolvedValueOnce({
+      isValid: false,
+      invalidReason: 'unsupported_token',
+      invalidMessage: 'Token is not supported by this facilitator',
+    });
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/verify',
+      headers: { 'content-type': 'application/json' },
+      payload: createTestVerifyRequest({
+        asset: 'deadbeef00000000000000000000000000000000000000000000000000.cafe',
+      }),
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body);
+    expect(body.isValid).toBe(false);
+    expect(body.invalidReason).toBe('unsupported_token');
+    expect(body.invalidMessage).toBe('Token is not supported by this facilitator');
   });
 });
