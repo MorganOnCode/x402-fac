@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 4 complete -- all 3 plans executed. POST /settle and POST /status endpoints wired, 204 tests passing. Ready for Phase 4 verification/UAT.
+**Current focus:** Phase 5 in progress -- Plan 01 complete (token registry + type extensions). 218 tests passing. Ready for Plan 05-02 (token verification checks).
 
 ## Current Position
 
-Phase: 4 of 8 (Settlement)
-Plan: 3 of 3 in phase 4
-Status: Phase complete
-Last activity: 2026-02-06 - Completed 04-03-PLAN.md (settlement route wiring)
+Phase: 5 of 8 (Stablecoins)
+Plan: 1 of 3 in phase 5
+Status: In progress
+Last activity: 2026-02-08 - Completed 05-01-PLAN.md (token registry + type extensions)
 
-Progress: [██████████████████░░] 86% overall (18/21 plans complete)
-Phase 4: [██████████] 3/3 plans complete
+Progress: [███████████████████░] 90% overall (19/21 plans complete)
+Phase 5: [███░░░░░░░] 1/3 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: 5 min
-- Total execution time: 1.6 hours
+- Total execution time: 1.65 hours
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Phase 4: [██████████] 3/3 plans complete
 | 02-chain-provider | 6 | 31 min | 5 min |
 | 03-verification | 4 | 24 min | 6 min |
 | 04-settlement | 3 | 14 min | 5 min |
+| 05-stablecoins | 1 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 5 min, 5 min, 4 min, 6 min, 4 min
+- Last 5 plans: 5 min, 4 min, 6 min, 4 min, 3 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -103,6 +104,9 @@ Recent decisions affecting current work:
 | Public blockfrostClient accessor on ChainProvider | 04-03 | Routes need BlockfrostClient; minimal getter avoids exposing private field |
 | Mock settlePayment at function level for settle tests | 04-03 | Route tests focus on HTTP handling, not settlement orchestration |
 | Mock blockfrost-client module for status tests | 04-03 | Gives clean control over getTransaction returns via module factory |
+| Token registry as ReadonlyMap keyed by unit strings | 05-01 | Security gate: hardcoded tokens require code review to add |
+| Optional VerifyContext.asset and getMinUtxoLovelace | 05-01 | Incremental rollout: existing routes compile without new fields until Plan 03 |
+| PaymentRequirementsSchema.asset defaults to 'lovelace' | 05-01 | Backward compatibility for ADA-only clients that omit asset field |
 
 ### Pending Todos
 
@@ -120,13 +124,13 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-None - Phase 4 complete. Ready for verification/UAT, then Phase 5 (Stablecoins).
+None - Phase 5 Plan 01 complete. Ready for Plan 05-02 (token verification checks).
 
 ## Session Continuity
 
-Last session: 2026-02-06T15:40:00Z
-Stopped at: Completed 04-03-PLAN.md (settlement route wiring) -- Phase 4 complete
-Resume file: None
+Last session: 2026-02-08T09:53:49Z
+Stopped at: Completed 05-01-PLAN.md (token registry + type extensions) -- Phase 5 Plan 1 complete
+Resume file: .planning/phases/05-stablecoins/05-02-PLAN.md
 
 ## Phase 1 Completion Summary
 
