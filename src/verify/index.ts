@@ -49,5 +49,14 @@ export {
 // Verification orchestrator (Plan 03)
 export { verifyPayment, describeFailure } from './verify-payment.js';
 
-// Future exports (Plan 04):
-// export { verifyRoute } from '../routes/verify.js';       // Plan 04
+// Token registry (Phase 5)
+export {
+  SUPPORTED_TOKENS,
+  LOVELACE_UNIT,
+  isTokenPayment,
+  getToken,
+  assetToUnit,
+} from './token-registry.js';
+export type { TokenEntry } from './token-registry.js';
+
+// New check functions will be exported after Plan 05-02

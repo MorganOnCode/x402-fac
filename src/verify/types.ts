@@ -59,8 +59,8 @@ export const PaymentRequirementsSchema = z
     scheme: z.literal('exact'),
     /** CAIP-2 chain ID, e.g. "cardano:preview" */
     network: z.string().regex(/^[a-z0-9]+:[a-z0-9]+$/, 'Must be a valid CAIP-2 chain ID'),
-    /** Asset identifier ("lovelace" for ADA) */
-    asset: z.string(),
+    /** Asset identifier ("lovelace" for ADA, "policyId.assetNameHex" for tokens) */
+    asset: z.string().default('lovelace'),
     /** Maximum lovelace amount as string (BigInt-safe for JSON) */
     maxAmountRequired: z.string().min(1),
     /** Bech32 Cardano address of the payment recipient */
@@ -187,6 +187,15 @@ export interface VerifyContext {
   feeMin: bigint;
   /** Maximum acceptable fee in lovelace (from config) */
   feeMax: bigint;
+
+  /** Asset identifier: "lovelace" for ADA, or "policyId.assetNameHex" for tokens.
+   *  Optional for backward compatibility -- checks default to 'lovelace' when absent. */
+  asset?: string;
+
+  /** Calculate min UTXO lovelace for an output carrying the given number of distinct assets.
+   *  For ADA-only outputs, numAssets=0. For token outputs, numAssets=1+.
+   *  Optional -- checkMinUtxo skips when absent (existing routes won't have it until Plan 03). */
+  getMinUtxoLovelace?: (numAssets: number) => Promise<bigint>;
 
   // Pipeline state (set by earlier checks, consumed by later checks)
   /** Parsed transaction set by checkCborValid, consumed by all subsequent checks */

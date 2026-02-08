@@ -29,6 +29,8 @@ const FAILURE_MESSAGES: Record<string, string> = {
   transaction_expired: 'Transaction TTL has expired',
   unreasonable_fee: 'Transaction fee is outside acceptable bounds',
   cbor_required: 'Transaction CBOR is required for this check',
+  unsupported_token: 'Token is not supported by this facilitator',
+  min_utxo_insufficient: 'Output does not contain enough ADA for minimum UTXO requirement',
 };
 
 /**
