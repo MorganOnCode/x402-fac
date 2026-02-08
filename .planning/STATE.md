@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-04)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 5 in progress -- Plan 02 complete (token verification checks). 239 tests passing. Ready for Plan 05-03 (route integration).
+**Current focus:** Phase 5 complete -- stablecoin support end-to-end. 246 tests passing. Ready for Phase 6 (Batching).
 
 ## Current Position
 
-Phase: 5 of 8 (Stablecoins)
-Plan: 2 of 3 in phase 5
-Status: In progress
-Last activity: 2026-02-08 - Completed 05-02-PLAN.md (token verification checks)
+Phase: 5 of 8 (Stablecoins) -- COMPLETE
+Plan: 3 of 3 in phase 5
+Status: Phase complete
+Last activity: 2026-02-08 - Completed 05-03-PLAN.md (route integration + token payment tests)
 
-Progress: [████████████████████] 95% overall (20/21 plans complete)
-Phase 5: [██████░░░░] 2/3 plans complete
+Progress: [█████████████████████] 100% overall (21/21 plans complete)
+Phase 5: [██████████] 3/3 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: 5 min
-- Total execution time: 1.75 hours
+- Total execution time: 1.82 hours
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Phase 5: [██████░░░░] 2/3 plans complete
 | 02-chain-provider | 6 | 31 min | 5 min |
 | 03-verification | 4 | 24 min | 6 min |
 | 04-settlement | 3 | 14 min | 5 min |
-| 05-stablecoins | 2 | 9 min | 5 min |
+| 05-stablecoins | 3 | 13 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 6 min, 4 min, 3 min, 6 min
+- Last 5 plans: 6 min, 4 min, 3 min, 6 min, 4 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -111,6 +111,9 @@ Recent decisions affecting current work:
 | checkMinUtxo skips when getMinUtxoLovelace absent | 05-02 | Allows existing routes to work before Plan 03 wires the callback |
 | Overpayment allowed (>=) for ADA and tokens | 05-02 | Matches existing ADA behavior; exact matching rejects legitimate txs |
 | VERIFICATION_CHECKS pipeline order (10 checks) | 05-02 | token_supported at 4 (before recipient), min_utxo at 7 (after amount) |
+| asset + getMinUtxoLovelace in VerifyContext assembly | 05-03 | Both routes thread paymentRequirements.asset and ChainProvider callback |
+| settle-payment.ts unchanged for token support | 05-03 | Asset-agnostic by design; re-verify picks up token checks automatically |
+| Test helper refactored for paymentRequirements overrides | 05-03 | First arg = paymentRequirements overrides, second = top-level overrides |
 
 ### Pending Todos
 
@@ -128,13 +131,13 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-None - Phase 5 Plan 02 complete. Ready for Plan 05-03 (route integration).
+None - Phase 5 complete. Ready for Phase 6 (Batching).
 
 ## Session Continuity
 
-Last session: 2026-02-08T09:59:14Z
-Stopped at: Completed 05-02-PLAN.md (token verification checks) -- Phase 5 Plan 2 complete
-Resume file: .planning/phases/05-stablecoins/05-03-PLAN.md
+Last session: 2026-02-08T10:11:30Z
+Stopped at: Completed 05-03-PLAN.md (route integration + token payment tests) -- Phase 5 complete
+Resume file: Phase 6 planning needed
 
 ## Phase 1 Completion Summary
 
@@ -202,3 +205,19 @@ Key artifacts for Phase 5:
 - `src/settle/types.ts` - All settlement Zod schemas and TypeScript types
 - `src/server.ts` - Server with 4 route plugins: health, verify, settle, status
 - 204 tests across 14 suites, all passing
+
+## Phase 5 Completion Summary
+
+Phase 5 added end-to-end stablecoin payment support (USDM, DJED, iUSD):
+
+- **05-01**: Token registry (hardcoded ReadonlyMap as security gate), VerifyContext type extensions (optional asset + getMinUtxoLovelace), PaymentRequirementsSchema.asset with Zod default, failure messages
+- **05-02**: checkTokenSupported (registry-based validation), checkAmount token branching (ADA/token), checkMinUtxo (async min UTXO check via callback), pipeline expanded 8->10 checks
+- **05-03**: Route handler wiring (asset + getMinUtxoLovelace threaded into VerifyContext), barrel exports, 7 integration tests
+
+Key artifacts for Phase 6:
+- `src/verify/token-registry.ts` - Hardcoded token definitions (SUPPORTED_TOKENS, LOVELACE_UNIT, assetToUnit)
+- `src/verify/checks.ts` - 10 verification checks including token_supported, token amount branching, min_utxo
+- `src/verify/types.ts` - VerifyContext with asset and getMinUtxoLovelace fields
+- `src/routes/verify.ts` - /verify with full token threading
+- `src/routes/settle.ts` - /settle with full token threading (re-verify picks up token checks)
+- 246 tests across 16 suites, all passing
