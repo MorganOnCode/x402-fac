@@ -10,6 +10,7 @@
 import { CML } from '@lucid-evolution/lucid';
 
 import { deserializeTransaction } from './cbor.js';
+import { SUPPORTED_TOKENS, LOVELACE_UNIT, assetToUnit } from './token-registry.js';
 import { CAIP2_TO_NETWORK_ID } from './types.js';
 import type { CheckResult, VerifyCheck, VerifyContext } from './types.js';
 
@@ -105,7 +106,38 @@ export function checkNetwork(ctx: VerifyContext): CheckResult {
 }
 
 // ---------------------------------------------------------------------------
-// Check 4: Recipient output
+// Check 4: Token supported
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate that the requested asset is supported by this facilitator.
+ * ADA ("lovelace") is always supported. Token payments must be in
+ * the SUPPORTED_TOKENS registry.
+ *
+ * Must come BEFORE recipient check for fast rejection of unsupported tokens.
+ */
+export function checkTokenSupported(ctx: VerifyContext): CheckResult {
+  const asset = ctx.asset ?? LOVELACE_UNIT;
+
+  if (asset === LOVELACE_UNIT) {
+    return { check: 'token_supported', passed: true };
+  }
+
+  const unit = assetToUnit(asset);
+  if (SUPPORTED_TOKENS.has(unit)) {
+    return { check: 'token_supported', passed: true };
+  }
+
+  return {
+    check: 'token_supported',
+    passed: false,
+    reason: 'unsupported_token',
+    details: { asset },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Check 5: Recipient output
 // ---------------------------------------------------------------------------
 
 /**

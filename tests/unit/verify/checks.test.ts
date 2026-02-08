@@ -13,6 +13,7 @@ import {
   checkNetwork,
   checkRecipient,
   checkScheme,
+  checkTokenSupported,
   checkTtl,
   checkWitness,
   VERIFICATION_CHECKS,
@@ -197,6 +198,72 @@ describe('checkNetwork', () => {
     expect(result.check).toBe('network');
     expect(result.passed).toBe(false);
     expect(result.reason).toBe('cbor_required');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkTokenSupported
+// ---------------------------------------------------------------------------
+
+describe('checkTokenSupported', () => {
+  const MOCK_POLICY_ID = 'aa'.repeat(28); // 56-char hex
+  const MOCK_ASSET_NAME = 'bbccdd';
+  const MOCK_ASSET_DOT = MOCK_POLICY_ID + '.' + MOCK_ASSET_NAME; // API format
+
+  // Real token dot-separated API formats (for integration-style registry tests)
+  const USDM_DOT = 'c48cbb3d5e57ed56e276bc45f99ab39abe94e6cd7ac39fb402da47ad.0014df105553444d';
+  const DJED_DOT =
+    '8db269c3ec630e06ae29f74bc39edd1f87c819f1056206e879a1cd61.446a65644d6963726f555344';
+  const IUSD_DOT = 'f66d78b4a3cb3d37afa0ec36461e51ecbde00f26c8f0a68f94b69880.69555344';
+
+  it('passes for ADA payment (lovelace)', () => {
+    const ctx = makeCtx({ asset: 'lovelace' });
+    const result = checkTokenSupported(ctx);
+    expect(result.check).toBe('token_supported');
+    expect(result.passed).toBe(true);
+  });
+
+  it('passes for USDM (real registry entry)', () => {
+    const ctx = makeCtx({ asset: USDM_DOT });
+    const result = checkTokenSupported(ctx);
+    expect(result.check).toBe('token_supported');
+    expect(result.passed).toBe(true);
+  });
+
+  it('passes for DJED (real registry entry)', () => {
+    const ctx = makeCtx({ asset: DJED_DOT });
+    const result = checkTokenSupported(ctx);
+    expect(result.check).toBe('token_supported');
+    expect(result.passed).toBe(true);
+  });
+
+  it('passes for iUSD (real registry entry)', () => {
+    const ctx = makeCtx({ asset: IUSD_DOT });
+    const result = checkTokenSupported(ctx);
+    expect(result.check).toBe('token_supported');
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails with unsupported_token for unknown token', () => {
+    const ctx = makeCtx({ asset: MOCK_ASSET_DOT });
+    const result = checkTokenSupported(ctx);
+    expect(result.check).toBe('token_supported');
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('unsupported_token');
+  });
+
+  it('includes asset identifier in failure details', () => {
+    const ctx = makeCtx({ asset: MOCK_ASSET_DOT });
+    const result = checkTokenSupported(ctx);
+    expect(result.passed).toBe(false);
+    expect(result.details).toEqual({ asset: MOCK_ASSET_DOT });
+  });
+
+  it('check name is token_supported in all results', () => {
+    const passCtx = makeCtx({ asset: 'lovelace' });
+    const failCtx = makeCtx({ asset: MOCK_ASSET_DOT });
+    expect(checkTokenSupported(passCtx).check).toBe('token_supported');
+    expect(checkTokenSupported(failCtx).check).toBe('token_supported');
   });
 });
 
