@@ -40,6 +40,7 @@ describe('Health Endpoint', () => {
   const testConfig: Config = {
     server: { host: '0.0.0.0', port: 0 },
     logging: { level: 'error', pretty: false },
+    rateLimit: { global: 100, windowMs: 60000, sensitive: 20 },
     env: 'test',
     chain: {
       network: 'Preview',

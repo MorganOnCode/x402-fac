@@ -106,24 +106,17 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-12 todos in `.planning/todos/pending/` (created 2026-02-06 from masumi gap analysis):
+5 todos in `.planning/todos/pending/` (from masumi gap analysis, cleaned 2026-02-07):
 
 | # | Title | Priority | Phase |
 |---|-------|----------|-------|
-| 1 | Rewrite Phase 4 deliverables for tx-based model | Critical | 4 |
-| 2 | Add /status endpoint for async settlement polling | Critical | 4 |
-| 3 | Add multi-asset data to DeserializedTx output type | Critical | 3 |
-| 4 | Implement settlement idempotency via CBOR hash | Important | 4 |
-| 5 | Define HTTP 202 pending response format | Important | 4 |
-| 6 | Add submitTransaction() to BlockfrostClient | Important | 4 |
-| 7 | Support X-PAYMENT-RESPONSE header | Important | 4 |
-| 8 | Rename amount to maxAmountRequired | Important | 3 |
-| 9 | Note facilitator wallet not needed for settlement | Moderate | 4 |
-| 10 | Consider moving /supported endpoint earlier | Moderate | 8 |
-| 11 | Document masumi native token format for Phase 5 | Moderate | 5 |
-| 12 | Phase 6 batching incompatibility confirmed | Minor | 6 |
+| 1 | Support X-PAYMENT-RESPONSE header | Important | 4 |
+| 2 | Rename amount to maxAmountRequired | Important | 3 |
+| 3 | Consider moving /supported endpoint earlier | Moderate | 8 |
+| 4 | Document masumi native token format for Phase 5 | Moderate | 5 |
+| 5 | Phase 6 batching incompatibility confirmed | Minor | 6 |
 
-Items 3 and 8 applied to Phase 3 plans before execution. Item 3 (multi-asset DeserializedTx) now implemented in 03-02. Items 1-2, 4-7, 9 captured in Phase 4 pre-planning note.
+7 todos completed by Phase 3-4 execution (moved to `done/` on 2026-02-07).
 
 ### Blockers/Concerns
 
