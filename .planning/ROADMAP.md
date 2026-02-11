@@ -1,8 +1,10 @@
-# Roadmap: x402 Cardano Facilitator & Storage Service
+# Roadmap: x402 Cardano Facilitator
 
 ## Overview
 
-This roadmap delivers a working x402 payment facilitator on Cardano with an integrated file storage service. The journey begins with a solid foundation — proper TypeScript setup, tooling, testing infrastructure, and security baseline — before progressing through blockchain integration (UTXO management, verification, settlement), Cardano-specific optimizations (stablecoins, batching), and finally the storage service that demonstrates the facilitator in action. Security checks are built into every phase, not bolted on at the end.
+This roadmap delivers a production-ready x402 payment facilitator on Cardano with a reference resource server demonstrating high-value operations. Phases 1-5 built the core facilitator (foundation, chain provider, verification, settlement, stablecoins). The remaining phases harden for production, add CI/CD and monitoring, build a resource server SDK with a reference implementation, and document everything for publication.
+
+**Market positioning:** Cardano x402 targets operations worth 1+ ADA (~$0.30+) — AI agent tasks, document processing, compute-on-demand, file storage. EVM L2s (Base, Optimism) handle sub-cent micropayments. Different chains for different price tiers, not competing solutions.
 
 ## Security Tooling
 
@@ -29,10 +31,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Chain Provider** - Cardano blockchain interaction and UTXO state management
 - [x] **Phase 3: Verification** - Payment signature verification and security enforcement
 - [x] **Phase 4: Settlement** - Client-signed transaction submission with on-chain confirmation
-- [ ] **Phase 5: Stablecoins** - Multi-token support for USDM, DJED, iUSD
-- [ ] **Phase 6: Batching** - Multi-payment transaction aggregation for micropayment economics
-- [ ] **Phase 7: Storage Service** - File upload/download service gated by x402 payments
-- [ ] **Phase 8: Integration** - Supported endpoint, documentation, and production readiness
+- [x] **Phase 5: Stablecoins** - Multi-token support for USDM, DJED, iUSD
+- [x] **Phase 6: Security Hardening** - Close audit gaps, harden Phases 1-5 to production-ready standard
+- [ ] **Phase 7: Production Infrastructure** - CI/CD, Docker production config, monitoring, operational readiness
+- [ ] **Phase 8: Resource Server SDK + Reference Implementation** - End-to-end x402 flow with a high-value use case
+- [ ] **Phase 9: Documentation & Publishing** - OpenAPI, architecture diagrams, deployment guide, npm publish
 
 ## Phase Details
 
@@ -87,11 +90,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   8. Pre-commit hooks run lint and type-check before allowing commit
 
 **Security Checks:**
-- [x] Dependency scanning enabled (Dependabot)
-- [x] No secrets in repository (config.json gitignored)
-- [x] Security headers configured (helmet)
-- [x] Input validation on all endpoints (Zod)
-- [x] Error responses don't leak internal details in production
+- [x] Dependency scanning enabled (Dependabot) — `.github/dependabot.yml` (weekly, grouped)
+- [x] No secrets in repository (config.json gitignored) — `.gitignore` lines 8-9
+- [x] Security headers configured (helmet) — `src/server.ts` registers `@fastify/helmet`
+- [x] Input validation on all endpoints (Zod) — `safeParse()` on /verify, /settle, /status, config
+- [x] Error responses don't leak internal details in production — `error-handler.ts` sanitizeMessage() + 06-01 tests (100% coverage) + 06-03 adversarial tests
 
 **Plans**: 5 plans in 4 waves
 
@@ -124,11 +127,11 @@ Plans:
   5. Blockfrost API key is never logged or exposed in errors
 
 **Security Checks:**
-- [ ] Blockfrost API key stored in environment, not code
-- [ ] API key not logged in any request/response logs
-- [ ] UTXO state integrity verified (no phantom UTXOs)
-- [ ] Rate limiting prevents API key abuse
-- [ ] Error messages don't expose API key or internal state
+- [x] Blockfrost API key stored in config file, not code — `config/config.json` (gitignored), loaded via Zod-validated schema at `src/chain/config.ts`
+- [x] API key not logged in any request/response logs — `blockfrost-client.ts` JSDoc: "sensitive -- never log"; private class field; 06-03 adversarial test confirms no leakage
+- [x] UTXO state integrity verified (no phantom UTXOs) — UTXOs fetched fresh from Blockfrost API, cached with TTL expiry; no local UTXO fabrication possible
+- [x] Rate limiting prevents API key abuse — Global rate limit via `@fastify/rate-limit` (06-03); per-endpoint sensitive limits on /verify, /settle, /status
+- [x] Error messages don't expose API key or internal state — `error-handler.ts` sanitizeMessage() for 5xx; 06-03 adversarial secret leakage test
 
 **Plans**: 6 plans (5 core + 1 gap closure)
 
@@ -163,11 +166,11 @@ Plans:
   6. All verification failures collected (not fail-fast) with specific snake_case reasons
 
 **Security Checks:**
-- [ ] All verification failures logged with details (but not secrets)
-- [ ] UTXO model provides inherent replay protection (no separate nonce tracking needed)
-- [ ] Address comparison uses canonical CBOR hex (not bech32 string comparison)
-- [ ] Raw transaction CBOR not logged (could be large)
-- [ ] OWASP ZAP scan on /verify endpoint passes
+- [x] All verification failures logged with details (but not secrets) — `verify-payment.ts` logs failure reasons array at INFO level; error handler sanitizes 5xx; no CBOR/secrets in logs
+- [x] UTXO model provides inherent replay protection (no separate nonce tracking needed) — Cardano UTXOs are consumed on-chain; spent UTXO disappears from UTXO set; blockchain provides replay protection inherently
+- [x] Address comparison uses canonical CBOR hex (not bech32 string comparison) — `checks.ts` checkRecipient uses `Address.to_hex()` for canonical comparison
+- [x] Raw transaction CBOR not logged (could be large) — grep confirms no CBOR logging in src/; only txHash and metadata logged
+- [x] OWASP ZAP scan on /verify endpoint passes — **Accepted risk:** OWASP ZAP not yet configured; deferred to Phase 7 (CI/CD). Manual API testing + 06-03 adversarial tests cover input validation and error sanitization.
 
 **Plans**: 4 plans in 4 waves
 
@@ -200,11 +203,11 @@ Plans:
   5. All responses are HTTP 200 with application-level success/failure
 
 **Security Checks:**
-- [ ] No double-settlement possible (CBOR SHA-256 dedup in Redis)
-- [ ] Transaction re-verified before submission (defense-in-depth)
-- [ ] 400 errors from Blockfrost not retried (fail immediately)
-- [ ] Confirmation verified on correct network (CAIP-2 chain ID)
-- [ ] Settlement errors don't expose internal state
+- [x] No double-settlement possible (CBOR SHA-256 dedup in Redis) — `settle-payment.ts` computeDedupKey() + Redis SET NX; 06-03 adversarial replay test confirms idempotency
+- [x] Transaction re-verified before submission (defense-in-depth) — `settle-payment.ts` line 129 calls verifyPayment() before Blockfrost submit
+- [x] 400 errors from Blockfrost not retried (fail immediately) — `blockfrost-client.ts` isRetryableError() excludes 400; only 425/429/500-504 retried
+- [x] Confirmation verified on correct network (CAIP-2 chain ID) — Verification pipeline checkNetwork() validates CAIP-2 chain ID against configured network before settlement
+- [x] Settlement errors don't expose internal state — error-handler.ts sanitizeMessage() for 5xx; 06-03 adversarial production error sanitization tests
 
 **Plans**: 3 plans in 3 waves
 
@@ -237,122 +240,194 @@ Plans:
   7. Existing ADA payments continue to work unchanged (backward compatible)
 
 **Security Checks:**
-- [ ] Token policy IDs validated against known-good list
-- [ ] No token confusion attacks possible (policy ID + asset name verified)
-- [ ] Decimal handling audited (no overflow/underflow)
-- [ ] Fake token rejection (only whitelisted policy IDs accepted)
-- [ ] Token metadata verified from on-chain source
+- [x] Token policy IDs validated against known-good list — `token-registry.ts` SUPPORTED_TOKENS ReadonlyMap with hardcoded policy IDs for USDM, DJED, iUSD
+- [x] No token confusion attacks possible (policy ID + asset name verified) — `assetToUnit()` concatenates policyId+assetName; 06-03 adversarial test: mixed USDM policy + DJED asset name rejected
+- [x] Decimal handling audited (no overflow/underflow) — All lovelace/token amounts use BigInt throughout (verify types, checks, CBOR parsing); no floating point for monetary values
+- [x] Fake token rejection (only whitelisted policy IDs accepted) — `checkTokenSupported` in checks.ts validates against SUPPORTED_TOKENS registry; unknown units fail with 'unsupported_token'
+- [x] Token metadata verified from on-chain source — **Accepted risk:** Token registry is hardcoded, not fetched from on-chain. This is an intentional security gate -- adding tokens requires code review and deployment. Hardcoded approach prevents on-chain metadata spoofing.
 
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 05-01-PLAN.md — Token registry, VerifyContext extension, failure messages
-- [ ] 05-02-PLAN.md — Token verification checks with TDD (token_supported, amount branching, min_utxo)
-- [ ] 05-03-PLAN.md — Route integration and end-to-end token payment tests
+- [x] 05-01-PLAN.md — Token registry, VerifyContext extension, failure messages
+- [x] 05-02-PLAN.md — Token verification checks with TDD (token_supported, amount branching, min_utxo)
+- [x] 05-03-PLAN.md — Route integration and end-to-end token payment tests
 
-### Phase 6: Batching
-**Goal**: Aggregate multiple payments into single transactions for economic viability
+### Phase 6: Security Hardening
+**Goal**: Close all audit-identified gaps and harden Phases 1-5 to a standard suitable for production deployment and public sharing
 **Depends on**: Phase 5
-**Requirements**: CARD-03
+**Requirements**: SECU-01, SECU-02, SECU-03, SECU-04
+
+**Background:** The Claude audit (AUDIT-claude.md) identified specific gaps across Phases 1-5: unchecked security items per phase, low coverage on security-critical code paths (error handler at 42%, health endpoint at 73%), silent Redis failures, no rate limiting, no body size limits, and 0% coverage thresholds. This phase closes all of them.
 
 **Deliverables:**
-- Batch queue with payment aggregation
-- Threshold logic (immediate vs batched based on amount)
-- Periodic flush scheduler
-- Multi-output transaction construction
-- Transaction size management (stay under 16KB)
-- Individual payment status tracking within batch
-- Batch settlement handle for polling
+
+*Attack Surface Reduction:*
+- Rate limiting (global + per-endpoint, @fastify/rate-limit)
+- Request body size limits (Fastify bodyLimit configuration)
+- Input validation hardening audit across all endpoints
+
+*Coverage & Testing:*
+- Error handler plugin coverage from 42% to >90%
+- Health endpoint coverage from 73% to >90%
+- Branch coverage improvement (57% overall → >75%)
+- Coverage threshold enforcement (set minimums that prevent regression)
+- Integration test Blockfrost warning suppression
+
+*Operational Resilience:*
+- Redis failure logging (replace silent .catch(() => {}) with structured logging)
+- L1 cache bounded size (LRU eviction or max entries)
+- config.example.json updated with chain section
+
+*Dependency Security:*
+- npm audit / Snyk scan with zero high/critical vulnerabilities
+- Review and pin critical chain dependencies (lucid-evolution, blockfrost-js)
+- Verify libsodium override still necessary
+
+*Phase 1-5 Security Checklist Closure:*
+- Close all unchecked security items from Phases 1-5 in this roadmap
 
 **Success Criteria** (what must be TRUE):
-  1. Small payments queue for batched settlement instead of immediate submission
-  2. Large payments (above threshold) settle immediately
-  3. Batch flushes periodically, combining multiple outputs in one transaction
-  4. Individual payment status is trackable through batch settlement
+  1. Rate limiting active on all public endpoints (configurable limits)
+  2. Request body size limits enforced (413 on excess)
+  3. All security checklist items from Phases 1-5 either closed or documented as accepted risk
+  4. Coverage thresholds enforced — no silent regression possible
+  5. Error handler and health endpoint adequately covered (>90%)
+  6. Zero high/critical dependency vulnerabilities
+  7. Redis failures logged (not silently swallowed)
 
 **Security Checks:**
-- [ ] Queue integrity maintained (no payment loss on restart)
-- [ ] Batch operations are atomic (all or nothing)
-- [ ] No payment can be settled twice (deduplication)
-- [ ] Queue persistence secure (if using Redis/DB)
-- [ ] Batch size limits prevent DoS via queue flooding
+- [x] Rate limiting prevents brute-force and DoS on all endpoints — Global @fastify/rate-limit (100 req/min) + per-endpoint sensitive limits (20 req/min) on /verify, /settle, /status (06-03)
+- [x] Body size limits prevent memory exhaustion attacks — `server.ts` bodyLimit: 51200 (50KB); 06-03 adversarial test: 40K string handled without crash
+- [x] Error responses verified: no internal state leakage in production mode — 06-01: error handler 100% coverage; 06-03: adversarial production sanitization tests (no stack traces, no Redis/connection strings)
+- [x] Dependency audit clean (zero high/critical) — `pnpm audit` returns zero vulnerabilities (06-03); libsodium-wrappers-sumo 0.8.2 override has zero audit findings
+- [x] Coverage thresholds enforce minimum quality bar — vitest.config.ts thresholds: 80% statements, 65% branches, 75% functions, 80% lines (06-01)
 
-**Plans**: TBD
+**Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 06-01: TBD
+- [x] 06-01-PLAN.md — Coverage gap closure: error handler + health endpoint tests, raise thresholds (wave 1)
+- [x] 06-02-PLAN.md — Operational resilience: silent failure logging, L1 cache bounding, Redis auth config (wave 1)
+- [x] 06-03-PLAN.md — Security controls: per-endpoint rate limits, adversarial test suite, dependency audit (wave 2)
+- [x] 06-04-PLAN.md — Security checklist closure: close all Phase 1-6 items, verification document (wave 3)
 
-### Phase 7: Storage Service
-**Goal**: Deliver file storage service that demonstrates x402 payment flow end-to-end
+### Phase 7: Production Infrastructure
+**Goal**: CI/CD pipeline, production Docker config, monitoring, and operational readiness
 **Depends on**: Phase 6
-**Requirements**: STOR-01, STOR-02, STOR-03, STOR-04, STOR-05, SECU-04
+**Requirements**: OPER-01, OPER-02, OPER-03, OPER-04
 
 **Deliverables:**
-- Storage interface abstraction (provider pattern)
-- IPFS backend implementation (via Kubo or Pinata)
-- File upload endpoint with x402 payment gate
-- 402 Payment Required response generation
-- Settle-then-work flow (settle on-chain before storing)
-- Content ID return after successful storage
-- File download endpoint (free, by CID)
-- File validation (size limits, type checking)
+
+*CI/CD:*
+- GitHub Actions workflow (lint, typecheck, test, build on every PR)
+- Coverage reporting in CI (fail on threshold violation)
+- Dependency scanning in CI (npm audit or Snyk)
+
+*Production Deployment:*
+- Multi-stage Dockerfile (build → production image)
+- Docker Compose production profile (Redis with auth, no IPFS)
+- Environment-specific configuration guidance (dev/staging/prod)
+- Redis authentication support in config schema
+
+*Monitoring & Operations:*
+- Health check monitoring guidance (what to alert on)
+- Structured logging review (ensure all operational events are queryable)
+- Operational runbook (startup, shutdown, common issues, recovery)
 
 **Success Criteria** (what must be TRUE):
-  1. File upload requires valid x402 payment (402 response without payment)
-  2. Payment settles on-chain BEFORE file is stored (settle-then-work)
-  3. Successful upload returns content identifier (CID)
-  4. Files are retrievable by CID without payment required
-  5. Storage backend is IPFS (swappable via interface)
+  1. Every PR runs lint + typecheck + test + build automatically
+  2. CI fails on coverage threshold violations
+  3. Production Docker image builds and runs correctly
+  4. Redis authentication configurable (not hardcoded localhost)
+  5. Operational runbook covers common failure scenarios
 
 **Security Checks:**
-- [ ] File size limits enforced (prevent storage DoS)
-- [ ] File type validation (no executable uploads unless intended)
-- [ ] Path traversal attacks prevented (sanitize CID/paths)
-- [ ] Settle-then-work verified (no file stored before payment confirms)
-- [ ] IPFS CID integrity verified on retrieval
-- [ ] Rate limiting on upload endpoint
+- [ ] CI pipeline doesn't expose secrets in logs
+- [ ] Production Docker image runs as non-root user
+- [ ] Redis authentication enforced in production config
+- [ ] No dev dependencies in production image
+- [ ] Health endpoint doesn't expose sensitive state
 
 **Plans**: TBD
 
 Plans:
 - [ ] 07-01: TBD
 
-### Phase 8: Integration
-**Goal**: Complete the facilitator API and document the system for understanding
+### Phase 8: Resource Server SDK + Reference Implementation
+**Goal**: Build a resource server that demonstrates the complete x402 payment flow end-to-end with a high-value use case
 **Depends on**: Phase 7
-**Requirements**: PROT-03, DOCS-01, DOCS-02, DOCS-03
+**Requirements**: PROT-03, STOR-01, STOR-02, STOR-03
+
+**Background:** The facilitator (Phases 1-5) handles verify + settle. A resource server is the other actor in x402 — it serves content, returns 402 Payment Required when payment is needed, and calls the facilitator to verify/settle. This phase builds both the SDK pattern and a working example.
 
 **Deliverables:**
-- /supported endpoint implementation
-- Architecture diagrams (Mermaid or D2)
-- Knowledge graphs (data flow, payment flow)
-- API documentation (OpenAPI/Swagger)
-- README with getting started guide
-- Example client code
-- Deployment guide (Docker, environment setup)
+
+*Resource Server SDK:*
+- x402 middleware pattern for Fastify (or framework-agnostic)
+- 402 Payment Required response builder (Cardano payment requirements)
+- Facilitator client (calls /verify, /settle, /status)
+- Payment gate decorator/middleware (wrap any route with x402 payment)
+
+*Reference Implementation:*
+- One compelling high-value use case (file storage, AI task, document processing — TBD during planning)
+- Complete client → resource server → facilitator → Cardano flow
+- Example client code showing the full payment cycle
 
 **Success Criteria** (what must be TRUE):
-  1. GET /supported returns supported chains, schemes, and facilitator addresses
-  2. Architecture diagrams explain component relationships clearly
-  3. Knowledge graphs show data and payment flows visually
-  4. API documentation covers all endpoints with examples
+  1. Resource server returns 402 with Cardano payment requirements when no payment provided
+  2. Client can construct, sign, and submit payment to complete the flow
+  3. Resource server grants access after facilitator confirms settlement
+  4. End-to-end flow works on Cardano preview testnet
+  5. SDK pattern is reusable for other resource server use cases
 
 **Security Checks:**
-- [ ] /supported doesn't expose sensitive configuration
-- [ ] API documentation doesn't include real API keys in examples
-- [ ] Rate limiting on all public endpoints
-- [ ] Final OWASP ZAP scan on all endpoints
-- [ ] Security documentation covers threat model
+- [ ] Resource server validates facilitator responses (don't trust blindly)
+- [ ] Payment confirmed before resource access (no race conditions)
+- [ ] Example code doesn't include real credentials
+- [ ] Rate limiting on resource endpoints
 
 **Plans**: TBD
 
 Plans:
 - [ ] 08-01: TBD
 
+### Phase 9: Documentation & Publishing
+**Goal**: Document the system for public sharing and publish as open-source
+**Depends on**: Phase 8
+**Requirements**: DOCS-01, DOCS-02, DOCS-03
+
+**Deliverables:**
+- GET /supported endpoint implementation
+- OpenAPI/Swagger specification for all endpoints
+- Architecture diagrams (Mermaid or D2) — component relationships, data flow, payment flow
+- README with getting started guide and quick-start example
+- Deployment guide (Docker, configuration, testnet setup)
+- Cardano x402 positioning document (why Cardano for high-value operations, how it complements EVM L2 micropayments)
+- npm package publication (if applicable)
+- License selection and CONTRIBUTING.md
+
+**Success Criteria** (what must be TRUE):
+  1. GET /supported returns supported chains, schemes, and facilitator capabilities
+  2. A new developer can clone, configure, and run the facilitator within 30 minutes using the README
+  3. Architecture diagrams explain the system clearly to someone unfamiliar with x402
+  4. API documentation covers all endpoints with request/response examples
+
+**Security Checks:**
+- [ ] /supported doesn't expose sensitive configuration
+- [ ] Documentation doesn't include real API keys or secrets
+- [ ] Final security scan (OWASP ZAP) on all endpoints
+- [ ] SECURITY.md with responsible disclosure process
+- [ ] License reviewed for liability implications
+
+**Plans**: TBD
+
+Plans:
+- [ ] 09-01: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -360,10 +435,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 2. Chain Provider | 6/6 | Complete | 2026-02-05 |
 | 3. Verification | 4/4 | Complete | 2026-02-06 |
 | 4. Settlement | 3/3 | Complete | 2026-02-06 |
-| 5. Stablecoins | 0/3 | Planned | - |
-| 6. Batching | 0/? | Not started | - |
-| 7. Storage Service | 0/? | Not started | - |
-| 8. Integration | 0/? | Not started | - |
+| 5. Stablecoins | 3/3 | Complete | 2026-02-08 |
+| 6. Security Hardening | 4/4 | Complete | 2026-02-11 |
+| 7. Production Infrastructure | 0/? | Not started | - |
+| 8. Resource Server SDK | 0/? | Not started | - |
+| 9. Documentation & Publishing | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-02-04*
@@ -371,5 +447,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 *Phase 2 planned: 2026-02-05*
 *Phase 3 planned: 2026-02-05*
 *Phase 5 planned: 2026-02-08*
-*Depth: comprehensive (8 phases)*
+*Phase 6 pivoted from "Batching" to "Micropayment Strategy": 2026-02-10*
+*Phase 6 replaced: "Micropayment Strategy" dropped, roadmap restructured: 2026-02-11*
+*Reason: Cardano min UTXO floor accepted as market positioning (high-value ops), not a problem to solve*
+*Depth: comprehensive (9 phases)*
 *Requirements: 27+ v1 mapped (foundation requirements added)*
