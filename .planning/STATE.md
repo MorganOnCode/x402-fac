@@ -2,27 +2,27 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-04)
+See: .planning/PROJECT.md (updated 2026-02-10)
 
 **Core value:** A working x402 payment flow on Cardano that I understand end-to-end
-**Current focus:** Phase 5 complete -- stablecoin support end-to-end. 246 tests passing. Ready for Phase 6 (Batching).
+**Current focus:** Roadmap restructured. Micropayment Strategy dropped — Cardano min UTXO accepted as market positioning (high-value operations ≥1 ADA). Phases 6-9 now: Security Hardening → Production Infrastructure → Resource Server SDK → Documentation & Publishing.
 
 ## Current Position
 
-Phase: 5 of 8 (Stablecoins) -- COMPLETE
-Plan: 3 of 3 in phase 5
-Status: Phase complete
-Last activity: 2026-02-08 - Completed 05-03-PLAN.md (route integration + token payment tests)
+Phase: 6 of 9 (Security Hardening) -- IN PROGRESS
+Plan: 1 of 4 in phase 6
+Status: Plan 06-01 (Coverage Gap Closure) complete
+Last activity: 2026-02-11 - Plan 06-01 executed (31 new tests, coverage thresholds raised)
 
-Progress: [█████████████████████] 100% overall (21/21 plans complete)
-Phase 5: [██████████] 3/3 plans complete
+Progress: [██████████████████████] 100% overall (22/25 plans complete)
+Phase 6: [██░░░░░░░░] In Progress (1/4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: 5 min
-- Total execution time: 1.82 hours
+- Total execution time: 1.92 hours
 
 **By Phase:**
 
@@ -33,9 +33,10 @@ Phase 5: [██████████] 3/3 plans complete
 | 03-verification | 4 | 24 min | 6 min |
 | 04-settlement | 3 | 14 min | 5 min |
 | 05-stablecoins | 3 | 13 min | 4 min |
+| 06-security-hardening | 1 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 6 min, 4 min, 3 min, 6 min, 4 min
+- Last 5 plans: 4 min, 3 min, 6 min, 4 min, 6 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -114,10 +115,16 @@ Recent decisions affecting current work:
 | asset + getMinUtxoLovelace in VerifyContext assembly | 05-03 | Both routes thread paymentRequirements.asset and ChainProvider callback |
 | settle-payment.ts unchanged for token support | 05-03 | Asset-agnostic by design; re-verify picks up token checks automatically |
 | Test helper refactored for paymentRequirements overrides | 05-03 | First arg = paymentRequirements overrides, second = top-level overrides |
+| Phase 6 pivot: Batching → Micropayment Strategy | 06-pre | L1 batching saves only ~15% (min UTXO per output); prepaid credits + L2 research more impactful |
+| FluxPoint dual-rail as reference architecture | 06-pre | Base L2 for cheap payments, Cardano L1 for high-value + audit; validates the pattern |
+| Prepaid credit accounts as primary micropayment solution | 06-pre | Off-chain ledger amortizes L1 costs; no custodial key management needed |
+| L2 (Hydra, Midnight) deferred to research deliverable | 06-pre | Both too early for production; document feasibility, don't build |
+| Micropayment Strategy dropped entirely | 06-drop | Min UTXO is market positioning, not a problem. Cardano x402 targets high-value ops (≥1 ADA). Let EVM L2s handle micropayments. |
+| Roadmap restructured: 4 new phases | 06-drop | Phase 6: Security Hardening, Phase 7: Production Infra, Phase 8: Resource Server SDK, Phase 9: Docs & Publish |
 
 ### Pending Todos
 
-5 todos in `.planning/todos/pending/` (from masumi gap analysis, cleaned 2026-02-07):
+4 todos in `.planning/todos/pending/` (from masumi gap analysis, cleaned 2026-02-07):
 
 | # | Title | Priority | Phase |
 |---|-------|----------|-------|
@@ -125,19 +132,19 @@ Recent decisions affecting current work:
 | 2 | Rename amount to maxAmountRequired | Important | 3 |
 | 3 | Consider moving /supported endpoint earlier | Moderate | 8 |
 | 4 | Document masumi native token format for Phase 5 | Moderate | 5 |
-| 5 | Phase 6 batching incompatibility confirmed | Minor | 6 |
 
+Todo #5 (Phase 6 batching incompatibility) resolved by Phase 6 pivot -- batching replaced with micropayment strategy.
 7 todos completed by Phase 3-4 execution (moved to `done/` on 2026-02-07).
 
 ### Blockers/Concerns
 
-None - Phase 5 complete. Ready for Phase 6 (Batching).
+None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phases/06-micropayment-strategy/` as historical reference but will not be executed.
 
 ## Session Continuity
 
-Last session: 2026-02-08T10:11:30Z
-Stopped at: Completed 05-03-PLAN.md (route integration + token payment tests) -- Phase 5 complete
-Resume file: Phase 6 planning needed
+Last session: 2026-02-11
+Stopped at: Completed 06-01-PLAN.md (Coverage Gap Closure)
+Resume file: Continue with 06-02-PLAN.md
 
 ## Phase 1 Completion Summary
 
