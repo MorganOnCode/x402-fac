@@ -1,7 +1,10 @@
-# Development dependencies - IPFS and Redis
-# App runs locally with hot reload, containers provide services
+# Development and production Docker services
+# Dev:  docker compose up (starts redis + ipfs for local development)
+# Prod: docker compose --profile production up (starts facilitator + redis with auth)
 
 services:
+  # --- Development services (default, no profile needed) ---
+
   ipfs:
     image: ipfs/kubo:latest
     container_name: x402-ipfs
@@ -25,6 +28,42 @@ services:
     command: redis-server --appendonly yes
     restart: unless-stopped
 
+  # --- Production services (--profile production) ---
+
+  facilitator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: x402-facilitator
+    profiles:
+      - production
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/config.json:/app/config/config.json:ro
+    depends_on:
+      redis-prod:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis-prod:
+    image: redis:7-alpine
+    container_name: x402-redis-prod
+    profiles:
+      - production
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_prod_data:/data
+    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD:-changeme}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
 volumes:
   ipfs_data:
   redis_data:
+  redis_prod_data:
