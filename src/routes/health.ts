@@ -1,6 +1,15 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import type { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
 import type Redis from 'ioredis';
+
+// Read version once at startup (not on every request)
+const packageJson = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf-8')) as {
+  version: string;
+};
+const APP_VERSION = packageJson.version;
 
 interface DependencyStatus {
   status: 'up' | 'down';
@@ -81,7 +90,7 @@ const healthRoutes: FastifyPluginCallback = (fastify, _options, done) => {
     const response: HealthResponse = {
       status,
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version ?? '0.0.0',
+      version: APP_VERSION,
       uptime: process.uptime(),
       dependencies,
     };
