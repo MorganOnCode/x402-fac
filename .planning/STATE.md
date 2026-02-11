@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 ## Current Position
 
 Phase: 7 of 9 (Production Infrastructure)
-Plan: 1 of 3 in phase 7
-Status: Plan 07-01 complete -- GitHub Actions CI/CD pipeline created
-Last activity: 2026-02-11 - Plan 07-01 executed (CI/CD pipeline)
+Plan: 2 of 3 in phase 7
+Status: Plan 07-02 complete -- Production Docker configuration created
+Last activity: 2026-02-12 - Plan 07-02 executed (Docker configuration)
 
-Progress: [██████████████████████████] 93% phase 7 (1/3 plans complete)
-Phase 7: [███-------] In Progress (1/3)
+Progress: [██████████████████████████] 96% phase 7 (2/3 plans complete)
+Phase 7: [██████----] In Progress (2/3)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 26
+- Total plans completed: 27
 - Average duration: 5 min
-- Total execution time: 2.23 hours
+- Total execution time: 2.28 hours
 
 **By Phase:**
 
@@ -34,10 +34,10 @@ Phase 7: [███-------] In Progress (1/3)
 | 04-settlement | 3 | 14 min | 5 min |
 | 05-stablecoins | 3 | 13 min | 4 min |
 | 06-security-hardening | 4 | 23 min | 6 min |
-| 07-production-infrastructure | 1 | 1 min | 1 min |
+| 07-production-infrastructure | 2 | 4 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 6 min, 9 min, 4 min, 4 min, 1 min
+- Last 5 plans: 9 min, 4 min, 4 min, 1 min, 3 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -135,6 +135,12 @@ Recent decisions affecting current work:
 | pnpm/action-setup@v4 auto-reads packageManager | 07-01 | No version pinning needed in workflow; reads from package.json |
 | No separate coverage action | 07-01 | vitest thresholds enforce coverage in-process; no external action needed |
 | pnpm audit --audit-level=high in CI | 07-01 | Fails CI on high/critical vulnerabilities; aligns with security hardening posture |
+| --ignore-scripts for prod pnpm install | 07-02 | husky prepare script unavailable without devDeps; --ignore-scripts prevents lifecycle failure |
+| Alpine base for Docker image | 07-02 | Minimal image size (~180MB vs ~1GB); wget available for healthcheck |
+| Non-root appuser:1001 in container | 07-02 | Security best practice; container never runs as root |
+| Runtime config mount (never baked in) | 07-02 | config/config.json bind-mounted :ro; secrets never in image layers |
+| Compose profiles for dev/prod separation | 07-02 | `docker compose up` unchanged; `--profile production` adds facilitator + Redis auth |
+| Production Redis on port 6380 | 07-02 | Avoids conflict with dev Redis on 6379 if both profiles run simultaneously |
 
 ### Pending Todos
 
@@ -156,9 +162,9 @@ None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phas
 
 ## Session Continuity
 
-Last session: 2026-02-11
-Stopped at: Completed 07-01-PLAN.md (GitHub Actions CI/CD Pipeline)
-Resume file: .planning/phases/07-production-infrastructure/07-02-PLAN.md
+Last session: 2026-02-12
+Stopped at: Completed 07-02-PLAN.md (Production Docker Configuration)
+Resume file: .planning/phases/07-production-infrastructure/07-03-PLAN.md
 
 ## Phase 1 Completion Summary
 
