@@ -58,8 +58,14 @@ export const ChainConfigSchema = z
       .object({
         host: z.string().default('127.0.0.1'),
         port: z.number().int().min(1).max(65535).default(6379),
+        /** Redis password (sensitive - never log). Optional for local dev. */
+        password: z.string().optional(),
+        /** Redis username (Redis 6+ ACL). Optional. */
+        username: z.string().optional(),
+        /** Redis database number (0-15). Default 0. */
+        db: z.number().int().min(0).max(15).default(0),
       })
-      .default(() => ({ host: '127.0.0.1', port: 6379 })),
+      .default(() => ({ host: '127.0.0.1', port: 6379, db: 0 })),
 
     verification: z
       .object({

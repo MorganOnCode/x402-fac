@@ -457,7 +457,7 @@ describe('createBlockfrostClient', () => {
       facilitator: { seedPhrase: 'test seed' },
       cache: { utxoTtlSeconds: 60 },
       reservation: { ttlSeconds: 120, maxConcurrent: 20 },
-      redis: { host: '127.0.0.1', port: 6379 },
+      redis: { host: '127.0.0.1', port: 6379, db: 0 },
       verification: {
         graceBufferSeconds: 30,
         maxTimeoutSeconds: 300,

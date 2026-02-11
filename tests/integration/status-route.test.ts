@@ -87,6 +87,7 @@ describe('POST /status Route', () => {
   const testConfig: Config = {
     server: { host: '0.0.0.0', port: 0 },
     logging: { level: 'error', pretty: false },
+    rateLimit: { global: 100, windowMs: 60000, sensitive: 20 },
     env: 'test',
     chain: {
       network: 'Preview',
@@ -94,7 +95,7 @@ describe('POST /status Route', () => {
       facilitator: { seedPhrase: 'test seed phrase for integration testing only' },
       cache: { utxoTtlSeconds: 60 },
       reservation: { ttlSeconds: 120, maxConcurrent: 20 },
-      redis: { host: '127.0.0.1', port: 6379 },
+      redis: { host: '127.0.0.1', port: 6379, db: 0 },
       verification: {
         graceBufferSeconds: 30,
         maxTimeoutSeconds: 300,

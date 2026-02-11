@@ -48,7 +48,7 @@ describe('Health Endpoint', () => {
       facilitator: { seedPhrase: 'test seed phrase for integration testing only' },
       cache: { utxoTtlSeconds: 60 },
       reservation: { ttlSeconds: 120, maxConcurrent: 20 },
-      redis: { host: '127.0.0.1', port: 6379 },
+      redis: { host: '127.0.0.1', port: 6379, db: 0 },
       verification: {
         graceBufferSeconds: 30,
         maxTimeoutSeconds: 300,
