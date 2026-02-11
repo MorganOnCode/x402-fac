@@ -10,47 +10,58 @@ import fp from 'fastify-plugin';
 import { StatusRequestSchema } from '../settle/types.js';
 
 const statusRoutes: FastifyPluginCallback = (fastify, _options, done) => {
-  fastify.post('/status', async (request, reply) => {
-    // 1. Parse and validate request body with Zod
-    const parsed = StatusRequestSchema.safeParse(request.body);
+  fastify.post(
+    '/status',
+    {
+      config: {
+        rateLimit: {
+          max: fastify.config.rateLimit.sensitive,
+          timeWindow: fastify.config.rateLimit.windowMs,
+        },
+      },
+    },
+    async (request, reply) => {
+      // 1. Parse and validate request body with Zod
+      const parsed = StatusRequestSchema.safeParse(request.body);
 
-    if (!parsed.success) {
-      return reply.status(200).send({
-        status: 'not_found',
-        transaction: '',
-      });
-    }
-
-    // 2. Query Blockfrost for transaction status
-    try {
-      const txInfo = await fastify.chainProvider.blockfrostClient.getTransaction(
-        parsed.data.transaction
-      );
-
-      // 3. Return confirmation status
-      if (txInfo !== null) {
+      if (!parsed.success) {
         return reply.status(200).send({
-          status: 'confirmed',
-          transaction: parsed.data.transaction,
+          status: 'not_found',
+          transaction: '',
         });
       }
 
-      return reply.status(200).send({
-        status: 'pending',
-        transaction: parsed.data.transaction,
-      });
-    } catch (error) {
-      // 4. Unexpected errors -- HTTP 500
-      fastify.log.error(
-        { err: error instanceof Error ? error.message : 'Unknown error' },
-        'Unexpected error during status check'
-      );
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'An unexpected error occurred during status check',
-      });
+      // 2. Query Blockfrost for transaction status
+      try {
+        const txInfo = await fastify.chainProvider.blockfrostClient.getTransaction(
+          parsed.data.transaction
+        );
+
+        // 3. Return confirmation status
+        if (txInfo !== null) {
+          return reply.status(200).send({
+            status: 'confirmed',
+            transaction: parsed.data.transaction,
+          });
+        }
+
+        return reply.status(200).send({
+          status: 'pending',
+          transaction: parsed.data.transaction,
+        });
+      } catch (error) {
+        // 4. Unexpected errors -- HTTP 500
+        fastify.log.error(
+          { err: error instanceof Error ? error.message : 'Unknown error' },
+          'Unexpected error during status check'
+        );
+        return reply.status(500).send({
+          error: 'Internal Server Error',
+          message: 'An unexpected error occurred during status check',
+        });
+      }
     }
-  });
+  );
 
   done();
 };
