@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 ## Current Position
 
 Phase: 6 of 9 (Security Hardening) -- IN PROGRESS
-Plan: 1 of 4 in phase 6
-Status: Plan 06-01 (Coverage Gap Closure) complete
-Last activity: 2026-02-11 - Plan 06-01 executed (31 new tests, coverage thresholds raised)
+Plan: 2 of 4 in phase 6
+Status: Plan 06-02 (Operational Resilience Gaps) complete
+Last activity: 2026-02-11 - Plan 06-02 executed (Redis logging, L1 cache bounds, Redis auth)
 
-Progress: [██████████████████████] 100% overall (22/25 plans complete)
-Phase 6: [██░░░░░░░░] In Progress (1/4)
+Progress: [██████████████████████] 100% overall (23/25 plans complete)
+Phase 6: [█████░░░░░] In Progress (2/4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: 5 min
-- Total execution time: 1.92 hours
+- Total execution time: 2.07 hours
 
 **By Phase:**
 
@@ -33,10 +33,10 @@ Phase 6: [██░░░░░░░░] In Progress (1/4)
 | 03-verification | 4 | 24 min | 6 min |
 | 04-settlement | 3 | 14 min | 5 min |
 | 05-stablecoins | 3 | 13 min | 4 min |
-| 06-security-hardening | 1 | 6 min | 6 min |
+| 06-security-hardening | 2 | 15 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 3 min, 6 min, 4 min, 6 min
+- Last 5 plans: 3 min, 6 min, 4 min, 6 min, 9 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -121,6 +121,9 @@ Recent decisions affecting current work:
 | L2 (Hydra, Midnight) deferred to research deliverable | 06-pre | Both too early for production; document feasibility, don't build |
 | Micropayment Strategy dropped entirely | 06-drop | Min UTXO is market positioning, not a problem. Cardano x402 targets high-value ops (≥1 ADA). Let EVM L2s handle micropayments. |
 | Roadmap restructured: 4 new phases | 06-drop | Phase 6: Security Hardening, Phase 7: Production Infra, Phase 8: Resource Server SDK, Phase 9: Docs & Publish |
+| maxL1Entries as constructor option (default 10,000) | 06-02 | Testability: tests use lower cap (e.g. 3) to verify eviction without creating 10K entries |
+| Debug level for Redis fire-and-forget logging | 06-02 | Redis is not source of truth; failures are informational, not operational alerts |
+| Redis db field default 0, password/username optional | 06-02 | Backward compatible; existing configs without auth fields work via Zod defaults |
 
 ### Pending Todos
 
@@ -143,8 +146,8 @@ None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phas
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 06-01-PLAN.md (Coverage Gap Closure)
-Resume file: Continue with 06-02-PLAN.md
+Stopped at: Completed 06-02-PLAN.md (Operational Resilience Gaps)
+Resume file: Continue with 06-03-PLAN.md
 
 ## Phase 1 Completion Summary
 
