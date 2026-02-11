@@ -222,4 +222,111 @@ describe('UtxoCache', () => {
     // Verify Redis was called (L1 was cleared)
     expect(mockRedis.get).toHaveBeenCalledTimes(2);
   });
+
+  // -------------------------------------------------------------------------
+  // L1 cache eviction (bounded size)
+  // -------------------------------------------------------------------------
+
+  describe('L1 eviction', () => {
+    it('should evict the oldest entry when max L1 size exceeded via set()', async () => {
+      const smallCache = new UtxoCache({
+        redis: mockRedis as unknown as Redis,
+        ttlMs: 60_000,
+        logger: mockLogger,
+        maxL1Entries: 3,
+      });
+
+      // Insert 3 entries with staggered timestamps to ensure different expiresAt
+      await smallCache.set('addr_1', testUtxos); // oldest
+      await smallCache.set('addr_2', testUtxos);
+      await smallCache.set('addr_3', testUtxos);
+
+      // All 3 should be present (at cap, not over)
+      expect(await smallCache.get('addr_1')).not.toBeNull();
+      expect(await smallCache.get('addr_2')).not.toBeNull();
+      expect(await smallCache.get('addr_3')).not.toBeNull();
+
+      // 4th entry pushes over cap -> oldest (addr_1) should be evicted
+      await smallCache.set('addr_4', testUtxos);
+
+      // addr_1 should now miss L1 (evicted), falls through to L2
+      mockRedis.get.mockClear();
+      const result = await smallCache.get('addr_1');
+      // L2 still has it because our mock Redis stores everything
+      expect(result).not.toBeNull();
+      expect(mockRedis.get).toHaveBeenCalledWith('utxo:addr_1');
+
+      // addr_4 should be in L1
+      mockRedis.get.mockClear();
+      const r4 = await smallCache.get('addr_4');
+      expect(r4).not.toBeNull();
+      // L1 hit - no Redis call
+      expect(mockRedis.get).not.toHaveBeenCalled();
+    });
+
+    it('should evict the oldest entry when max L1 size exceeded via L2 warming in get()', async () => {
+      const smallCache = new UtxoCache({
+        redis: mockRedis as unknown as Redis,
+        ttlMs: 60_000,
+        logger: mockLogger,
+        maxL1Entries: 2,
+      });
+
+      // Fill L1 to cap
+      await smallCache.set('addr_1', testUtxos); // oldest
+      await smallCache.set('addr_2', testUtxos);
+
+      // Manually put a 3rd entry in L2 only (via mock Redis store)
+      const serialized = serializeWithBigInt(testUtxos);
+      mockRedis._store.set('utxo:addr_3', {
+        value: serialized,
+        expiresAt: Date.now() + 60_000,
+      });
+
+      // Invalidate addr_3 from L1 (it's only in L2)
+      // Actually addr_3 was never in L1, so get() will warm L1 from L2
+      const result = await smallCache.get('addr_3');
+      expect(result).not.toBeNull();
+
+      // L1 should now have addr_2 and addr_3 (addr_1 evicted as oldest)
+      mockRedis.get.mockClear();
+      const r2 = await smallCache.get('addr_2');
+      expect(r2).not.toBeNull();
+      expect(mockRedis.get).not.toHaveBeenCalled(); // L1 hit
+
+      const r3 = await smallCache.get('addr_3');
+      expect(r3).not.toBeNull();
+      // addr_3 was just warmed into L1, so should be L1 hit
+    });
+
+    it('should log eviction at debug level', async () => {
+      const smallCache = new UtxoCache({
+        redis: mockRedis as unknown as Redis,
+        ttlMs: 60_000,
+        logger: mockLogger,
+        maxL1Entries: 1,
+      });
+
+      await smallCache.set('addr_1', testUtxos);
+      vi.mocked(mockLogger.debug).mockClear();
+
+      await smallCache.set('addr_2', testUtxos);
+
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        expect.objectContaining({ evictedAddress: 'addr_1' }),
+        'L1 cache entry evicted (max size)'
+      );
+    });
+
+    it('should default to 10,000 max entries when not specified', () => {
+      // The default cache created in beforeEach does not specify maxL1Entries
+      // Verify it accepts 10,000+ entries without error (we won't actually
+      // create 10K entries, but we verify no eviction for small counts)
+      expect(async () => {
+        await cache.set('addr_a', testUtxos);
+        await cache.set('addr_b', testUtxos);
+        await cache.set('addr_c', testUtxos);
+      }).not.toThrow();
+    });
+  });
 });

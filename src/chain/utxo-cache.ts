@@ -61,12 +61,20 @@ export class UtxoCache {
   private readonly ttlMs: number;
   private readonly ttlSeconds: number;
   private readonly logger: FastifyBaseLogger;
+  private readonly maxL1Entries: number;
 
-  constructor(options: { redis: Redis; ttlMs: number; logger: FastifyBaseLogger }) {
+  constructor(options: {
+    redis: Redis;
+    ttlMs: number;
+    logger: FastifyBaseLogger;
+    /** Maximum L1 cache entries before eviction (default 10,000). */
+    maxL1Entries?: number;
+  }) {
     this.redis = options.redis;
     this.ttlMs = options.ttlMs;
     this.ttlSeconds = Math.ceil(options.ttlMs / 1000);
     this.logger = options.logger;
+    this.maxL1Entries = options.maxL1Entries ?? 10_000;
   }
 
   /**
@@ -96,6 +104,7 @@ export class UtxoCache {
         utxos,
         expiresAt: Date.now() + this.ttlMs,
       });
+      this.evictIfOverCap();
       return utxos;
     }
 
@@ -112,6 +121,7 @@ export class UtxoCache {
       utxos,
       expiresAt: Date.now() + this.ttlMs,
     });
+    this.evictIfOverCap();
 
     // L2 write
     const redisKey = `utxo:${address}`;
@@ -119,6 +129,29 @@ export class UtxoCache {
     await this.redis.set(redisKey, serialized, 'EX', this.ttlSeconds);
 
     this.logger.debug({ address, count: utxos.length }, 'UTXO cache set');
+  }
+
+  /**
+   * Evict the oldest L1 entry (by expiresAt) when the cache exceeds maxL1Entries.
+   */
+  private evictIfOverCap(): void {
+    if (this.l1.size <= this.maxL1Entries) return;
+
+    let oldestKey: string | null = null;
+    let oldestExpiry = Infinity;
+    for (const [key, entry] of this.l1) {
+      if (entry.expiresAt < oldestExpiry) {
+        oldestExpiry = entry.expiresAt;
+        oldestKey = key;
+      }
+    }
+    if (oldestKey) {
+      this.l1.delete(oldestKey);
+      this.logger.debug(
+        { evictedAddress: oldestKey, cacheSize: this.l1.size },
+        'L1 cache entry evicted (max size)'
+      );
+    }
   }
 
   /**
