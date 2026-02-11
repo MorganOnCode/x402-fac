@@ -128,8 +128,9 @@ export class UtxoCache {
     this.l1.delete(address);
     // Fire-and-forget L2 deletion
     const redisKey = `utxo:${address}`;
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    this.redis.del(redisKey).catch(() => {});
+    this.redis.del(redisKey).catch((err: Error) => {
+      this.logger.debug({ err: err.message, redisKey }, 'Redis fire-and-forget failed');
+    });
     this.logger.debug({ address }, 'UTXO cache invalidated');
   }
 

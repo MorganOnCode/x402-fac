@@ -75,8 +75,9 @@ export class UtxoReservation {
 
     // Fire-and-forget Redis persistence
     const redisKey = `${REDIS_KEY_PREFIX}${utxoRef}`;
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    this.redis.set(redisKey, JSON.stringify(reservation), 'PX', this.ttlMs).catch(() => {});
+    this.redis.set(redisKey, JSON.stringify(reservation), 'PX', this.ttlMs).catch((err: Error) => {
+      this.logger.debug({ err: err.message, redisKey }, 'Redis fire-and-forget failed');
+    });
 
     this.logger.debug({ utxoRef, requestId, expiresAt: reservation.expiresAt }, 'UTXO reserved');
     return true;
@@ -92,8 +93,9 @@ export class UtxoReservation {
 
     // Fire-and-forget Redis deletion
     const redisKey = `${REDIS_KEY_PREFIX}${utxoRef}`;
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    this.redis.del(redisKey).catch(() => {});
+    this.redis.del(redisKey).catch((err: Error) => {
+      this.logger.debug({ err: err.message, redisKey }, 'Redis fire-and-forget failed');
+    });
 
     this.logger.debug({ utxoRef }, 'UTXO reservation released');
   }
@@ -192,8 +194,9 @@ export class UtxoReservation {
 
         // Fire-and-forget Redis cleanup
         const redisKey = `${REDIS_KEY_PREFIX}${utxoRef}`;
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        this.redis.del(redisKey).catch(() => {});
+        this.redis.del(redisKey).catch((err: Error) => {
+          this.logger.debug({ err: err.message, redisKey }, 'Redis fire-and-forget failed');
+        });
 
         this.logger.debug({ utxoRef }, 'Expired reservation cleaned');
       }
