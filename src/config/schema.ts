@@ -22,11 +22,21 @@ export const ConfigSchema = z.object({
     .object({
       dsn: z.string().url(),
       environment: z.string().default('development'),
+      tracesSampleRate: z.number().min(0).max(1).default(0.1),
     })
     .optional(),
 
   // Environment mode
   env: z.enum(['development', 'production', 'test']).default('development'),
+
+  // Rate limiting configuration
+  rateLimit: z
+    .object({
+      global: z.number().int().min(1).default(100),
+      sensitive: z.number().int().min(1).default(20),
+      windowMs: z.number().int().min(1000).default(60000),
+    })
+    .default(() => ({ global: 100, sensitive: 20, windowMs: 60000 })),
 
   // Chain provider configuration (Blockfrost, network, cache, reservation, Redis)
   chain: ChainConfigSchema,

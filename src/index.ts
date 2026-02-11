@@ -7,7 +7,7 @@ async function main(): Promise<void> {
   const config = loadConfig();
 
   // Initialize Sentry before anything else
-  initSentry(config.sentry?.dsn, config.env);
+  initSentry(config.sentry?.dsn, config.env, config.sentry?.tracesSampleRate);
 
   // Create server
   const server = await createServer({ config });
