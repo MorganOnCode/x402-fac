@@ -9,20 +9,21 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 
 ## Current Position
 
-Phase: 8 of 9 (Resource Server SDK) -- IN PROGRESS
-Plan: 6 of 6 in phase 8 (wave 3)
-Status: Plan 08-05 complete -- Upload/download routes, storage integration, multipart support
-Last activity: 2026-02-12 - Plan 08-05 executed (Upload/Download Routes)
+Phase: 8 of 9 (Resource Server SDK) -- COMPLETE
+Plan: 6 of 6 in phase 8 (wave 4) -- DONE
+Status: Phase 8 complete -- All 6 plans executed, SDK + reference implementation ready
+Last activity: 2026-02-12 - Plan 08-06 executed (Example client, README, roadmap update)
 
-Progress: [██████████████████████████████] Phase 8 in progress
-Phase 8: [█████████░] 5/6 plans complete (08-06 remaining)
+Progress: [████████████████████████████████] Phase 8 complete
+Phase 8: [██████████] 6/6 plans complete
+Next: Phase 9 (Documentation & Publishing)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29
+- Total plans completed: 30
 - Average duration: 5 min
-- Total execution time: 2.33 hours
+- Total execution time: 2.42 hours
 
 **By Phase:**
 
@@ -35,9 +36,10 @@ Phase 8: [█████████░] 5/6 plans complete (08-06 remaining)
 | 05-stablecoins | 3 | 13 min | 4 min |
 | 06-security-hardening | 4 | 23 min | 6 min |
 | 07-production-infrastructure | 3 | 7 min | 2 min |
+| 08-resource-server-sdk | 6 | 33 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 1 min, 3 min, 3 min, 5 min, 9 min
+- Last 5 plans: 3 min, 3 min, 5 min, 9 min, 5 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -156,6 +158,9 @@ Recent decisions affecting current work:
 | Mock payment gate at module level for upload tests | 08-05 | FacilitatorClient makes HTTP calls incompatible with server.inject(); gateMode variable controls pass/reject |
 | Health check ipfs -> storage rename | 08-05 | Reflects actual storage backend used; placeholder checkIpfs replaced with real checkStorage |
 | eslint-disable for noop done callback in upload route | 08-05 | Async preHandlerHookHandler ignores done; TypeScript requires it for call signature |
+| requireEnv() for type-safe env var validation | 08-06 | Avoids string\|undefined after process.exit(); returns string (never for exit path) |
+| Uint8Array wrapping for Buffer-to-Blob compat | 08-06 | Same pattern as 08-03 IpfsBackend; TypeScript strict mode rejects Buffer as BlobPart |
+| Add examples/ to tsconfig include | 08-06 | eslint projectService needs tsconfig coverage for pre-commit hook to lint examples |
 
 ### Pending Todos
 
@@ -178,8 +183,8 @@ None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phas
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 08-05-PLAN.md (Upload/download routes + storage integration)
-Resume file: Continue Phase 8 remaining plan (08-06)
+Stopped at: Completed 08-06-PLAN.md (Example client + Phase 8 complete)
+Resume file: Phase 9 (Documentation & Publishing) -- plan and execute
 
 ## Phase 1 Completion Summary
 
@@ -279,3 +284,39 @@ Key artifacts for Phase 7:
 - `vitest.config.ts` - Coverage thresholds enforced at 80/65/75/80
 - `tests/security/` - 19 security-focused tests (6 controls + 13 adversarial)
 - 298 tests across 19 suites, all passing
+
+## Phase 7 Completion Summary
+
+Phase 7 established production infrastructure:
+
+- **07-01**: GitHub Actions CI/CD pipeline (lint, typecheck, test+coverage, build, dependency audit)
+- **07-02**: Production Docker: multi-stage Dockerfile, .dockerignore, production compose profile
+- **07-03**: Operational readiness: Sentry config, health version fix, config examples, runbook
+
+Key artifacts for Phase 8:
+- `.github/workflows/ci.yml` - CI pipeline (lint, typecheck, test, build, audit)
+- `Dockerfile` - Multi-stage production image (Alpine, non-root)
+- `docker-compose.yml` - Dev and production profiles
+- `docs/runbook.md` - Operational runbook
+- 305 tests across 20 suites, all passing
+
+## Phase 8 Completion Summary
+
+Phase 8 built the Resource Server SDK and reference implementation:
+
+- **08-01**: SDK core: types (PaymentRequiredResponse, PaymentSignaturePayload), FacilitatorClient, 402 builder, barrel exports
+- **08-02**: ChainProvider.getAddress(), GET /supported endpoint, FacilitatorClient tests with mock fetch
+- **08-03**: Storage layer: StorageBackend interface, FsBackend (SHA-256 CID), IpfsBackend (Kubo HTTP), config schema
+- **08-04**: Payment gate middleware (createPaymentGate), Fastify type augmentation, settle-before-execution
+- **08-05**: POST /upload (payment-gated multipart), GET /files/:cid (free download), server integration, health check
+- **08-06**: Example client (7-step x402 payment flow), README, ROADMAP update
+
+Key artifacts for Phase 9:
+- `src/sdk/` - Complete SDK: types, FacilitatorClient, payment-required, payment-gate, barrel
+- `src/storage/` - StorageBackend interface with FsBackend and IpfsBackend
+- `src/routes/upload.ts` - Payment-gated file upload
+- `src/routes/download.ts` - Free file download by CID
+- `src/routes/supported.ts` - GET /supported (PROT-03)
+- `examples/client.ts` - Full x402 payment cycle example
+- `examples/README.md` - Setup and running instructions
+- 383 tests across 27 suites, all passing
