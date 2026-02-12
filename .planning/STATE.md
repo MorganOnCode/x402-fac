@@ -163,6 +163,10 @@ Recent decisions affecting current work:
 | Uint8Array wrapping for Buffer-to-Blob compat | 08-06 | Same pattern as 08-03 IpfsBackend; TypeScript strict mode rejects Buffer as BlobPart |
 | Add examples/ to tsconfig include | 08-06 | eslint projectService needs tsconfig coverage for pre-commit hook to lint examples |
 | Mermaid for GitHub-native diagrams | 09-03 | Renders natively on GitHub without external tools; 4 diagram types for different views |
+| attachValidation: true for safeParse routes | 09-01 | Preserves x402 protocol contract (HTTP 200 for all validation results); handler-level validation gives richer error responses |
+| Both Zod compilers set globally | 09-01 | Required for Fastify to handle Zod schemas in route schema declarations; serializerCompiler for response, validatorCompiler for body |
+| z.object over z.record for health dependencies | 09-01 | Zod v4 z.record produces invalid JSON Schema for fast-json-stringify; explicit keys more precise |
+| Explicit error response schemas per route | 09-01 | TypeScript requires all status codes in response schema; also documents error shapes in OpenAPI spec |
 
 ### Pending Todos
 
@@ -185,7 +189,7 @@ None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phas
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 09-05-PLAN.md (Deployment guide + Cardano x402 positioning)
+Stopped at: Completed 09-01-PLAN.md (OpenAPI/Swagger integration - code execution)
 Resume file: Plan 09-06 (final verification + roadmap closure)
 
 ## Phase 1 Completion Summary
