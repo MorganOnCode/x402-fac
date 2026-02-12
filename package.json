@@ -53,6 +53,8 @@
     "@fastify/cors": "^11.2.0",
     "@fastify/error": "^4.2.0",
     "@fastify/helmet": "^13.0.2",
+    "@fastify/multipart": "^9.4.0",
+    "@fastify/rate-limit": "^10.3.0",
     "@lucid-evolution/lucid": "^0.4.29",
     "@lucid-evolution/provider": "^0.1.90",
     "@sentry/node": "^10.38.0",
