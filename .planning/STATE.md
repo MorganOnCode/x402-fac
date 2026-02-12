@@ -9,13 +9,13 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 
 ## Current Position
 
-Phase: 7 of 9 (Production Infrastructure) -- COMPLETE
-Plan: 3 of 3 in phase 7 (all complete)
-Status: Phase 7 complete -- Production infrastructure done
-Last activity: 2026-02-12 - Plan 07-03 executed (Operational Readiness)
+Phase: 8 of 9 (Resource Server SDK) -- IN PROGRESS
+Plan: 4 of 6 in phase 8 (wave 2 parallel execution)
+Status: Plan 08-04 complete -- Payment gate middleware with settle-before-execution
+Last activity: 2026-02-12 - Plan 08-04 executed (Payment Gate Middleware)
 
-Progress: [██████████████████████████████] 100% phase 7 (3/3 plans complete)
-Phase 7: [██████████] Complete (3/3)
+Progress: [██████████████████████████████] Phase 8 in progress
+Phase 8: [██████░░░░] 4/6 plans complete
 
 ## Performance Metrics
 
@@ -144,6 +144,8 @@ Recent decisions affecting current work:
 | Sentry tracesSampleRate defaults 0.1 | 07-03 | 10% sampling prevents burning Sentry quota; was hardcoded 1.0 |
 | Health version via readFileSync at module load | 07-03 | process.env.npm_package_version only set by pnpm scripts, not node dist/index.js |
 | Config example shows production values | 07-03 | redis-prod host, auth, rate limits, JSON logs as production baseline |
+| Spread paymentRequiredOptions per request | 08-04 | Avoids shared state mutation between concurrent requests in payment gate |
+| HandlerFn type alias in tests | 08-04 | Bypasses Fastify this-context constraint without mock FastifyInstance |
 
 ### Pending Todos
 
@@ -166,8 +168,8 @@ None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phas
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 07-03-PLAN.md (Operational Readiness & Monitoring) -- Phase 7 COMPLETE
-Resume file: Next phase (08-resource-server-sdk)
+Stopped at: Completed 08-04-PLAN.md (Payment Gate Middleware) -- Phase 8 wave 2 in progress
+Resume file: Continue Phase 8 remaining plans (08-05, 08-06)
 
 ## Phase 1 Completion Summary
 
