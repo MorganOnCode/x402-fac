@@ -9,21 +9,21 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 
 ## Current Position
 
-Phase: 8 of 9 (Resource Server SDK) -- COMPLETE
-Plan: 6 of 6 in phase 8 (wave 4) -- DONE
-Status: Phase 8 complete -- All 6 plans executed, SDK + reference implementation ready
-Last activity: 2026-02-12 - Plan 08-06 executed (Example client, README, roadmap update)
+Phase: 9 of 9 (Documentation & Publishing) -- IN PROGRESS
+Plan: 3 of 6 in phase 9 (wave 1) -- DONE
+Status: Plan 09-03 complete -- Architecture diagrams created
+Last activity: 2026-02-12 - Plan 09-03 executed (Architecture diagrams)
 
-Progress: [████████████████████████████████] Phase 8 complete
-Phase 8: [██████████] 6/6 plans complete
-Next: Phase 9 (Documentation & Publishing)
+Progress: [████████████████████████████████░░░░] Phase 9 in progress
+Phase 9: [█████░░░░░] 3/6 plans complete
+Next: Plan 09-04
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30
+- Total plans completed: 33
 - Average duration: 5 min
-- Total execution time: 2.42 hours
+- Total execution time: 2.52 hours
 
 **By Phase:**
 
@@ -37,9 +37,10 @@ Next: Phase 9 (Documentation & Publishing)
 | 06-security-hardening | 4 | 23 min | 6 min |
 | 07-production-infrastructure | 3 | 7 min | 2 min |
 | 08-resource-server-sdk | 6 | 33 min | 6 min |
+| 09-documentation-publishing | 3 | 6 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 3 min, 3 min, 5 min, 9 min, 5 min
+- Last 5 plans: 3 min, 5 min, 9 min, 5 min, 2 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -161,6 +162,7 @@ Recent decisions affecting current work:
 | requireEnv() for type-safe env var validation | 08-06 | Avoids string\|undefined after process.exit(); returns string (never for exit path) |
 | Uint8Array wrapping for Buffer-to-Blob compat | 08-06 | Same pattern as 08-03 IpfsBackend; TypeScript strict mode rejects Buffer as BlobPart |
 | Add examples/ to tsconfig include | 08-06 | eslint projectService needs tsconfig coverage for pre-commit hook to lint examples |
+| Mermaid for GitHub-native diagrams | 09-03 | Renders natively on GitHub without external tools; 4 diagram types for different views |
 
 ### Pending Todos
 
@@ -183,8 +185,8 @@ None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phas
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 08-06-PLAN.md (Example client + Phase 8 complete)
-Resume file: Phase 9 (Documentation & Publishing) -- plan and execute
+Stopped at: Completed 09-03-PLAN.md (Architecture diagrams)
+Resume file: Plan 09-04 next
 
 ## Phase 1 Completion Summary
 
