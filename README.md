@@ -2,7 +2,7 @@
 
 > Cardano payment facilitator for the x402 protocol -- verify and settle blockchain payments for high-value operations.
 
-[![CI](https://github.com/anthropics/x402-fac/actions/workflows/ci.yml/badge.svg)](https://github.com/anthropics/x402-fac/actions/workflows/ci.yml)
+[![CI](https://github.com/MorganOnCode/x402-fac/actions/workflows/ci.yml/badge.svg)](https://github.com/MorganOnCode/x402-fac/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org)
 
@@ -35,7 +35,7 @@ This facilitator handles the Cardano side: verifying signed transactions against
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/x402-fac.git
+git clone https://github.com/MorganOnCode/x402-fac.git
 cd x402-fac
 pnpm install
 ```

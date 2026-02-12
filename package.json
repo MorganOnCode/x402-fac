@@ -59,12 +59,12 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/x402-fac.git"
+    "url": "https://github.com/MorganOnCode/x402-fac.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/x402-fac/issues"
+    "url": "https://github.com/MorganOnCode/x402-fac/issues"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/x402-fac#readme",
+  "homepage": "https://github.com/MorganOnCode/x402-fac#readme",
   "packageManager": "pnpm@10.8.1",
   "lint-staged": {
     "*.ts": [

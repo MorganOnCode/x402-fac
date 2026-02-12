@@ -14,7 +14,7 @@ If you discover a security vulnerability in x402-fac, please report it responsib
 
 ### How to Report
 
-1. [Create a GitHub security advisory](https://github.com/YOUR_USERNAME/x402-fac/security/advisories/new) (preferred)
+1. [Create a GitHub security advisory](https://github.com/MorganOnCode/x402-fac/security/advisories/new) (preferred)
 2. Include:
    - Description of the vulnerability
    - Steps to reproduce
