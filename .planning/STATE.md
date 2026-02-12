@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 ## Current Position
 
 Phase: 8 of 9 (Resource Server SDK) -- IN PROGRESS
-Plan: 5 of 6 in phase 8 (wave 2 parallel execution)
-Status: Plan 08-03 complete -- Storage layer (FsBackend, IpfsBackend, config extension)
-Last activity: 2026-02-12 - Plan 08-03 executed (Storage Layer)
+Plan: 6 of 6 in phase 8 (wave 3)
+Status: Plan 08-05 complete -- Upload/download routes, storage integration, multipart support
+Last activity: 2026-02-12 - Plan 08-05 executed (Upload/Download Routes)
 
 Progress: [██████████████████████████████] Phase 8 in progress
-Phase 8: [████████░░] 5/6 plans complete
+Phase 8: [█████████░] 5/6 plans complete (08-06 remaining)
 
 ## Performance Metrics
 
@@ -37,7 +37,7 @@ Phase 8: [████████░░] 5/6 plans complete
 | 07-production-infrastructure | 3 | 7 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 1 min, 3 min, 3 min, 5 min
+- Last 5 plans: 1 min, 3 min, 3 min, 5 min, 9 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -153,6 +153,9 @@ Recent decisions affecting current work:
 | IpfsBackend uses native fetch (no client lib) | 08-03 | Kubo HTTP API is simple enough; avoids ipfs-http-client dependency |
 | Storage config fully optional with Zod defaults | 08-03 | Existing configs work unchanged; defaults to FsBackend('./data/files') |
 | Buffer to Blob via Uint8Array | 08-03 | TypeScript strict mode rejects Buffer as BlobPart; Uint8Array is compatible |
+| Mock payment gate at module level for upload tests | 08-05 | FacilitatorClient makes HTTP calls incompatible with server.inject(); gateMode variable controls pass/reject |
+| Health check ipfs -> storage rename | 08-05 | Reflects actual storage backend used; placeholder checkIpfs replaced with real checkStorage |
+| eslint-disable for noop done callback in upload route | 08-05 | Async preHandlerHookHandler ignores done; TypeScript requires it for call signature |
 
 ### Pending Todos
 
@@ -175,8 +178,8 @@ None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phas
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 08-02-PLAN.md (/supported endpoint + SDK tests) -- Phase 8 wave 2 in progress
-Resume file: Continue Phase 8 remaining plans (08-05, 08-06)
+Stopped at: Completed 08-05-PLAN.md (Upload/download routes + storage integration)
+Resume file: Continue Phase 8 remaining plan (08-06)
 
 ## Phase 1 Completion Summary
 
