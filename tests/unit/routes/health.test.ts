@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import fastify from 'fastify';
+import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import { healthRoutesPlugin } from '../../../src/routes/health.js';
@@ -23,6 +24,10 @@ async function createHealthServer(options?: {
   storage?: { healthy: ReturnType<typeof vi.fn> } | Record<string, unknown>;
 }): Promise<FastifyInstance> {
   const server = fastify({ logger: false });
+
+  // Set Zod compilers (required for route schema declarations)
+  server.setValidatorCompiler(validatorCompiler);
+  server.setSerializerCompiler(serializerCompiler);
 
   // Decorate with redis if provided (simulates server.redis)
   // Cast to 'never' to satisfy Fastify's strict decorator typing -- this is a test mock

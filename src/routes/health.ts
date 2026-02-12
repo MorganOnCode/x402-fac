@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import type { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
 import type Redis from 'ioredis';
+import { z } from 'zod';
 
 import type { StorageBackend } from '../storage/types.js';
 
@@ -69,54 +70,84 @@ async function checkStorage(storage?: StorageBackend): Promise<DependencyStatus>
 }
 
 const healthRoutes: FastifyPluginCallback = (fastify, _options, done) => {
-  fastify.get<{ Reply: HealthResponse }>('/health', async (_request, reply) => {
-    // Run dependency checks in parallel
-    const [redisStatus, storageStatus] = await Promise.all([
-      checkRedis(fastify.redis).catch(
-        (err): DependencyStatus => ({
-          status: 'down',
-          error: err instanceof Error ? err.message : 'Unknown error',
-        })
-      ),
-      checkStorage(fastify.storage).catch(
-        (err): DependencyStatus => ({
-          status: 'down',
-          error: err instanceof Error ? err.message : 'Unknown error',
-        })
-      ),
-    ]);
-
-    const dependencies: Record<string, DependencyStatus> = {
-      redis: redisStatus,
-      storage: storageStatus,
-    };
-
-    // Determine overall status
-    const allUp = Object.values(dependencies).every((d) => d.status === 'up');
-    const allDown = Object.values(dependencies).every((d) => d.status === 'down');
-
-    let status: HealthResponse['status'];
-    if (allUp) {
-      status = 'healthy';
-    } else if (allDown) {
-      status = 'unhealthy';
-    } else {
-      status = 'degraded';
-    }
-
-    const response: HealthResponse = {
-      status,
-      timestamp: new Date().toISOString(),
-      version: APP_VERSION,
-      uptime: process.uptime(),
-      dependencies,
-    };
-
-    // Set appropriate status code
-    const statusCode = status === 'healthy' ? 200 : status === 'degraded' ? 200 : 503;
-
-    return reply.status(statusCode).send(response);
+  const DependencyStatusSchema = z.object({
+    status: z.enum(['up', 'down']),
+    latency: z.number().optional(),
+    error: z.string().optional(),
   });
+
+  const HealthResponseSchema = z.object({
+    status: z.enum(['healthy', 'degraded', 'unhealthy']),
+    timestamp: z.string(),
+    version: z.string(),
+    uptime: z.number(),
+    dependencies: z.object({
+      redis: DependencyStatusSchema,
+      storage: DependencyStatusSchema,
+    }),
+  });
+
+  fastify.get<{ Reply: HealthResponse }>(
+    '/health',
+    {
+      schema: {
+        description: 'Check server health and dependency status',
+        tags: ['Health'],
+        response: {
+          200: HealthResponseSchema,
+          503: HealthResponseSchema,
+        },
+      },
+    },
+    async (_request, reply) => {
+      // Run dependency checks in parallel
+      const [redisStatus, storageStatus] = await Promise.all([
+        checkRedis(fastify.redis).catch(
+          (err): DependencyStatus => ({
+            status: 'down',
+            error: err instanceof Error ? err.message : 'Unknown error',
+          })
+        ),
+        checkStorage(fastify.storage).catch(
+          (err): DependencyStatus => ({
+            status: 'down',
+            error: err instanceof Error ? err.message : 'Unknown error',
+          })
+        ),
+      ]);
+
+      const dependencies: Record<string, DependencyStatus> = {
+        redis: redisStatus,
+        storage: storageStatus,
+      };
+
+      // Determine overall status
+      const allUp = Object.values(dependencies).every((d) => d.status === 'up');
+      const allDown = Object.values(dependencies).every((d) => d.status === 'down');
+
+      let status: HealthResponse['status'];
+      if (allUp) {
+        status = 'healthy';
+      } else if (allDown) {
+        status = 'unhealthy';
+      } else {
+        status = 'degraded';
+      }
+
+      const response: HealthResponse = {
+        status,
+        timestamp: new Date().toISOString(),
+        version: APP_VERSION,
+        uptime: process.uptime(),
+        dependencies,
+      };
+
+      // Set appropriate status code
+      const statusCode = status === 'healthy' ? 200 : status === 'degraded' ? 200 : 503;
+
+      return reply.status(statusCode).send(response);
+    }
+  );
 
   done();
 };

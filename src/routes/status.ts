@@ -6,13 +6,24 @@
 
 import type { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
+import { z } from 'zod';
 
-import { StatusRequestSchema } from '../settle/types.js';
+import { StatusRequestSchema, StatusResponseSchema } from '../settle/types.js';
 
 const statusRoutes: FastifyPluginCallback = (fastify, _options, done) => {
   fastify.post(
     '/status',
     {
+      schema: {
+        description: 'Check transaction confirmation status on Cardano',
+        tags: ['Facilitator'],
+        body: StatusRequestSchema,
+        response: {
+          200: StatusResponseSchema,
+          500: z.object({ error: z.string(), message: z.string() }),
+        },
+      },
+      attachValidation: true,
       config: {
         rateLimit: {
           max: fastify.config.rateLimit.sensitive,
@@ -21,7 +32,7 @@ const statusRoutes: FastifyPluginCallback = (fastify, _options, done) => {
       },
     },
     async (request, reply) => {
-      // 1. Parse and validate request body with Zod
+      // 1. Parse and validate request body with Zod (handler-level, not Fastify schema)
       const parsed = StatusRequestSchema.safeParse(request.body);
 
       if (!parsed.success) {

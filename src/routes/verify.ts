@@ -6,9 +6,10 @@
 
 import type { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
+import { z } from 'zod';
 
 import type { CardanoNetwork } from '../chain/types.js';
-import { VerifyRequestSchema, CAIP2_CHAIN_IDS } from '../verify/types.js';
+import { VerifyRequestSchema, VerifyResponseSchema, CAIP2_CHAIN_IDS } from '../verify/types.js';
 import type { VerifyContext } from '../verify/types.js';
 import { verifyPayment } from '../verify/verify-payment.js';
 
@@ -16,6 +17,16 @@ const verifyRoutes: FastifyPluginCallback = (fastify, _options, done) => {
   fastify.post(
     '/verify',
     {
+      schema: {
+        description: 'Verify a Cardano payment transaction against payment requirements',
+        tags: ['Facilitator'],
+        body: VerifyRequestSchema,
+        response: {
+          200: VerifyResponseSchema,
+          500: z.object({ error: z.string(), message: z.string() }),
+        },
+      },
+      attachValidation: true,
       config: {
         rateLimit: {
           max: fastify.config.rateLimit.sensitive,
@@ -24,7 +35,7 @@ const verifyRoutes: FastifyPluginCallback = (fastify, _options, done) => {
       },
     },
     async (request, reply) => {
-      // 1. Parse and validate request body with Zod
+      // 1. Parse and validate request body with Zod (handler-level, not Fastify schema)
       const parsed = VerifyRequestSchema.safeParse(request.body);
 
       if (!parsed.success) {

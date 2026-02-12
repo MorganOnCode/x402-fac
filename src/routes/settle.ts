@@ -6,10 +6,11 @@
 
 import type { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
+import { z } from 'zod';
 
 import type { CardanoNetwork } from '../chain/types.js';
 import { settlePayment } from '../settle/settle-payment.js';
-import { SettleRequestSchema } from '../settle/types.js';
+import { SettleRequestSchema, SettleResponseSchema } from '../settle/types.js';
 import { CAIP2_CHAIN_IDS } from '../verify/types.js';
 import type { VerifyContext } from '../verify/types.js';
 
@@ -17,6 +18,16 @@ const settleRoutes: FastifyPluginCallback = (fastify, _options, done) => {
   fastify.post(
     '/settle',
     {
+      schema: {
+        description: 'Submit a signed Cardano transaction for on-chain settlement',
+        tags: ['Facilitator'],
+        body: SettleRequestSchema,
+        response: {
+          200: SettleResponseSchema,
+          500: z.object({ error: z.string(), message: z.string() }),
+        },
+      },
+      attachValidation: true,
       config: {
         rateLimit: {
           max: fastify.config.rateLimit.sensitive,
@@ -25,7 +36,7 @@ const settleRoutes: FastifyPluginCallback = (fastify, _options, done) => {
       },
     },
     async (request, reply) => {
-      // 1. Parse and validate request body with Zod
+      // 1. Parse and validate request body with Zod (handler-level, not Fastify schema)
       const parsed = SettleRequestSchema.safeParse(request.body);
 
       if (!parsed.success) {

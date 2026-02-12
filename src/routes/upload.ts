@@ -7,6 +7,7 @@
 
 import type { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
+import { z } from 'zod';
 
 // Import for type augmentation -- adds request.file() to FastifyRequest
 import '@fastify/multipart';
@@ -52,6 +53,36 @@ const uploadRoutes: FastifyPluginCallback = (fastify, _options, done) => {
   fastify.post(
     '/upload',
     {
+      schema: {
+        description: 'Upload a file with x402 payment (Payment-Signature header required)',
+        tags: ['Storage'],
+        response: {
+          200: z.object({
+            success: z.literal(true),
+            cid: z.string(),
+            size: z.number(),
+          }),
+          400: z.object({ error: z.string(), message: z.string() }),
+          402: z.object({
+            x402Version: z.literal(2),
+            error: z.string().nullable(),
+            resource: z.object({
+              description: z.string(),
+              mimeType: z.string(),
+              url: z.string(),
+            }),
+            accepts: z.array(
+              z.object({
+                scheme: z.string(),
+                network: z.string(),
+                amount: z.string(),
+                payTo: z.string(),
+              })
+            ),
+          }),
+          500: z.object({ error: z.string(), message: z.string() }),
+        },
+      },
       config: {
         rateLimit: {
           max: fastify.config.rateLimit.sensitive,
