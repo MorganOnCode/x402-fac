@@ -212,6 +212,15 @@ export class ChainProvider {
   }
 
   /**
+   * Get the facilitator wallet's bech32 address.
+   * Derived from the Lucid wallet (configured via seed phrase or private key).
+   * Used by /supported endpoint to report signer addresses.
+   */
+  async getAddress(): Promise<string> {
+    return await this.lucid.wallet().address();
+  }
+
+  /**
    * Calculate minimum UTXO lovelace for a basic output.
    *
    * Queries protocol parameters (cached for 5 minutes) and calculates

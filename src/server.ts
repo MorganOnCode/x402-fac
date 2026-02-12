@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import type { FastifyInstance } from 'fastify';
 import fastify from 'fastify';
 
@@ -12,6 +13,7 @@ import { requestLoggerPlugin } from './plugins/request-logger.js';
 import { healthRoutesPlugin } from './routes/health.js';
 import { settleRoutesPlugin } from './routes/settle.js';
 import { statusRoutesPlugin } from './routes/status.js';
+import { supportedRoutesPlugin } from './routes/supported.js';
 import { verifyRoutesPlugin } from './routes/verify.js';
 
 // Import types to ensure augmentation is loaded
@@ -44,6 +46,8 @@ export async function createServer(options: CreateServerOptions): Promise<Fastif
     genReqId: () => randomUUID(),
     // Disable default request logging (we use custom plugin)
     disableRequestLogging: true,
+    // Security: Strict body limit (50KB) to prevent memory exhaustion
+    bodyLimit: 51200,
   });
 
   // Decorate server with config for access in routes
@@ -54,6 +58,13 @@ export async function createServer(options: CreateServerOptions): Promise<Fastif
     global: true,
     // CSP can be customized per-route if needed
     contentSecurityPolicy: isDev ? false : undefined,
+  });
+
+  // Rate limiting
+  await server.register(rateLimit, {
+    max: config.rateLimit.global,
+    timeWindow: config.rateLimit.windowMs,
+    // use default in-memory store for now
   });
 
   // CORS - permissive in dev, restrictive in prod
@@ -105,6 +116,7 @@ export async function createServer(options: CreateServerOptions): Promise<Fastif
   await server.register(verifyRoutesPlugin);
   await server.register(settleRoutesPlugin);
   await server.register(statusRoutesPlugin);
+  await server.register(supportedRoutesPlugin);
 
   return server;
 }
