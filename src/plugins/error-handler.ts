@@ -50,7 +50,7 @@ const errorHandler: FastifyPluginCallback<ErrorHandlerOptions> = (fastify, optio
     const response: ErrorResponse = {
       error: {
         code,
-        message: isDev ? error.message : sanitizeMessage(error.message, code),
+        message: isDev ? error.message : sanitizeMessage(error.message, code, statusCode),
         statusCode,
         // Only include stack in development
         ...(isDev && error.stack && { stack: error.stack }),
@@ -89,7 +89,11 @@ const errorHandler: FastifyPluginCallback<ErrorHandlerOptions> = (fastify, optio
   done();
 };
 
-function sanitizeMessage(message: string, code: string): string {
+function sanitizeMessage(message: string, code: string, statusCode: number): string {
+  // Allow rate limit messages
+  if (statusCode === 429) {
+    return message;
+  }
   // In production, return generic messages for internal errors
   if (code === 'INTERNAL_ERROR' || code.startsWith('SERVER_')) {
     return 'An internal error occurred';

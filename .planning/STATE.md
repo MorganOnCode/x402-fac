@@ -173,17 +173,16 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-4 todos in `.planning/todos/pending/` (from masumi gap analysis, cleaned 2026-02-07):
+0 todos in `.planning/todos/pending/`. All cleared 2026-02-12:
 
-| # | Title | Priority | Phase |
-|---|-------|----------|-------|
-| 1 | Support X-PAYMENT-RESPONSE header | Important | 4 |
-| 2 | Rename amount to maxAmountRequired | Important | 3 |
-| 3 | Consider moving /supported endpoint earlier | Moderate | 8 |
-| 4 | Document masumi native token format for Phase 5 | Moderate | 5 |
+| # | Title | Resolution |
+|---|-------|------------|
+| 1 | Support X-PAYMENT-RESPONSE header | Redundant — settle response already returns {success, transaction, network} |
+| 2 | Rename amount to maxAmountRequired | Already done — field is maxAmountRequired across 27 files |
+| 3 | Consider moving /supported endpoint earlier | Already done — built in Phase 8 |
+| 4 | Document masumi native token format | Already done — token registry uses policyId + assetNameHex format |
 
-Todo #5 (Phase 6 batching incompatibility) resolved by Phase 6 pivot -- batching replaced with micropayment strategy.
-7 todos completed by Phase 3-4 execution (moved to `done/` on 2026-02-07).
+12 todos total completed (moved to `done/`).
 
 ### Blockers/Concerns
 

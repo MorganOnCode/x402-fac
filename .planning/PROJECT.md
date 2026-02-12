@@ -2,7 +2,7 @@
 
 ## What This Is
 
-An x402 payment facilitator for Cardano paired with a file storage service. Users pay in ADA or Cardano stablecoins to upload files; downloads are free. This is a learning project to understand the x402 protocol deeply, creating a foundation for future agentic tools and the "Transactional Identity" vision where payments serve as both authorization and identity proof.
+An x402 payment facilitator for Cardano targeting high-value operations (≥1 ADA). Users pay in ADA or Cardano stablecoins for services worth the transaction — AI agent tasks, file storage, compute, document processing. This is a learning project to understand the x402 protocol deeply, creating a foundation for future agentic tools and the "Transactional Identity" vision where payments serve as both authorization and identity proof. EVM L2s handle micropayments; Cardano handles operations worth paying for.
 
 ## Core Value
 
@@ -28,24 +28,21 @@ Using x402 v2 protocol with CAIP-2 network identifiers, `PaymentRequirements` wi
 
 ### Active
 
-- [ ] Facilitator verifies x402 payment signatures on Cardano
-- [ ] Facilitator settles payments on-chain (ADA and stablecoins)
-- [ ] Facilitator batches settlements for economic viability (Cardano min UTXO ~1.2 ADA)
-- [ ] Storage service accepts file uploads gated by x402 payment
-- [ ] Storage service returns content identifier after successful upload
-- [ ] Storage service serves files freely by content ID (no payment required)
-- [ ] Storage backend is abstracted (swappable implementations)
-- [ ] IPFS implemented as first storage backend
-- [ ] Pricing calculates based on file size
-- [ ] System produces diagrams and documentation that explain how it works
+- [ ] Facilitator hardened to production-ready security standard (Phase 6)
+- [ ] CI/CD pipeline, Docker production config, monitoring (Phase 7)
+- [ ] Resource server SDK with reusable x402 payment gate middleware (Phase 8)
+- [ ] Reference implementation demonstrating end-to-end high-value x402 flow (Phase 8)
+- [ ] System produces diagrams and documentation that explain how it works (Phase 9)
+- [ ] Published as open-source with deployment guide (Phase 9)
 
 ### Out of Scope
 
 - EVM/Solana/Aptos chain support — Cardano only for v1
+- Micropayments below ~1 ADA — accepted as Cardano's floor, not a problem to solve. EVM L2s serve that market.
+- Prepaid credit accounts / off-chain custodial ledger — dropped in favor of direct L1 settlement at higher price points
 - Pay-to-download model — uploads paid, downloads free
-- Production-grade security hardening — learning project first
 - Mobile apps — API/CLI focus
-- Midnight integration — future phase after core x402 understanding
+- Midnight/Hydra integration — future consideration, not v1
 
 ## Context
 
@@ -71,7 +68,7 @@ Using x402 v2 protocol with CAIP-2 network identifiers, `PaymentRequirements` wi
 ## Constraints
 
 - **Blockchain**: Cardano only — ADA native token + stablecoins (DJED, iUSD)
-- **Min UTXO**: ~1.2 ADA minimum on Cardano means true micro-payments need batching
+- **Min UTXO**: ~1 ADA minimum on Cardano — this IS the market positioning, not a limitation. High-value operations only.
 - **x402-rs**: Doesn't support Cardano — custom implementation or research existing Cardano x402 work
 - **Storage**: Abstract interface, IPFS first implementation
 - **Audience**: Personal use + friends initially, not public production service
@@ -98,4 +95,4 @@ Using x402 v2 protocol with CAIP-2 network identifiers, `PaymentRequirements` wi
 *Full decision log with rationale: see STATE.md (31 decisions)*
 
 ---
-*Last updated: 2026-02-05 after Phase 2 completion and audit review*
+*Last updated: 2026-02-11 — roadmap restructured, micropayments dropped, Cardano positioned for high-value x402 operations*

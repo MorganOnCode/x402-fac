@@ -7,6 +7,7 @@ dist/
 # Environment and config (secrets)
 config.json
 config/config.json
+config/cmds.bash
 .env
 .env.*
 !.env.example
@@ -16,6 +17,7 @@ coverage/
 
 # IDE
 .idea/
+.obsidian/
 *.swp
 *.swo
 
