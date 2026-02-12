@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 ## Current Position
 
 Phase: 8 of 9 (Resource Server SDK) -- IN PROGRESS
-Plan: 4 of 6 in phase 8 (wave 2 parallel execution)
-Status: Plan 08-04 complete -- Payment gate middleware with settle-before-execution
-Last activity: 2026-02-12 - Plan 08-04 executed (Payment Gate Middleware)
+Plan: 5 of 6 in phase 8 (wave 2 parallel execution)
+Status: Plan 08-03 complete -- Storage layer (FsBackend, IpfsBackend, config extension)
+Last activity: 2026-02-12 - Plan 08-03 executed (Storage Layer)
 
 Progress: [██████████████████████████████] Phase 8 in progress
-Phase 8: [██████░░░░] 4/6 plans complete
+Phase 8: [████████░░] 5/6 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28
+- Total plans completed: 29
 - Average duration: 5 min
 - Total execution time: 2.33 hours
 
@@ -37,7 +37,7 @@ Phase 8: [██████░░░░] 4/6 plans complete
 | 07-production-infrastructure | 3 | 7 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 4 min, 1 min, 3 min, 3 min
+- Last 5 plans: 4 min, 1 min, 3 min, 3 min, 5 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -146,6 +146,10 @@ Recent decisions affecting current work:
 | Config example shows production values | 07-03 | redis-prod host, auth, rate limits, JSON logs as production baseline |
 | Spread paymentRequiredOptions per request | 08-04 | Avoids shared state mutation between concurrent requests in payment gate |
 | HandlerFn type alias in tests | 08-04 | Bypasses Fastify this-context constraint without mock FastifyInstance |
+| FsBackend CID sanitization via hex regex | 08-03 | /^[a-f0-9]{64}$/ prevents path traversal on get() and has() |
+| IpfsBackend uses native fetch (no client lib) | 08-03 | Kubo HTTP API is simple enough; avoids ipfs-http-client dependency |
+| Storage config fully optional with Zod defaults | 08-03 | Existing configs work unchanged; defaults to FsBackend('./data/files') |
+| Buffer to Blob via Uint8Array | 08-03 | TypeScript strict mode rejects Buffer as BlobPart; Uint8Array is compatible |
 
 ### Pending Todos
 
@@ -168,7 +172,7 @@ None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phas
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 08-04-PLAN.md (Payment Gate Middleware) -- Phase 8 wave 2 in progress
+Stopped at: Completed 08-03-PLAN.md (Storage Layer) -- Phase 8 wave 2 in progress
 Resume file: Continue Phase 8 remaining plans (08-05, 08-06)
 
 ## Phase 1 Completion Summary
