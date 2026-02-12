@@ -164,6 +164,9 @@ Recent decisions affecting current work:
 | Add examples/ to tsconfig include | 08-06 | eslint projectService needs tsconfig coverage for pre-commit hook to lint examples |
 | Mermaid for GitHub-native diagrams | 09-03 | Renders natively on GitHub without external tools; 4 diagram types for different views |
 | attachValidation: true for safeParse routes | 09-01 | Preserves x402 protocol contract (HTTP 200 for all validation results); handler-level validation gives richer error responses |
+| Object entry format for dual tsup entry points | 09-04 | Named entries (index + sdk) produce dist/index.js and dist/sdk.js; tsup auto-splits shared Zod schemas into chunk |
+| files whitelist for npm security gate | 09-04 | Only dist/, LICENSE, README.md published; prevents .planning/, config/, tests/ leakage |
+| Placeholder repository URLs | 09-04 | YOUR_USERNAME in repository/bugs/homepage for user to fill before first publish |
 | Both Zod compilers set globally | 09-01 | Required for Fastify to handle Zod schemas in route schema declarations; serializerCompiler for response, validatorCompiler for body |
 | z.object over z.record for health dependencies | 09-01 | Zod v4 z.record produces invalid JSON Schema for fast-json-stringify; explicit keys more precise |
 | Explicit error response schemas per route | 09-01 | TypeScript requires all status codes in response schema; also documents error shapes in OpenAPI spec |
@@ -189,7 +192,7 @@ None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phas
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 09-02-PLAN.md (README, LICENSE, CONTRIBUTING, SECURITY)
+Stopped at: Completed 09-04-PLAN.md (npm publishing config, dual entry points)
 Resume file: Plan 09-06 (final verification + roadmap closure)
 
 ## Phase 1 Completion Summary
