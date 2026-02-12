@@ -11,10 +11,25 @@
   },
   "name": "x402-fac",
   "version": "1.0.0",
-  "description": "x402 payment facilitator for Cardano with file storage service",
+  "description": "Cardano x402 payment facilitator with resource server SDK",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./sdk": {
+      "import": "./dist/sdk.js",
+      "types": "./dist/sdk.d.ts"
+    }
+  },
+  "files": [
+    "dist/",
+    "LICENSE",
+    "README.md"
+  ],
   "engines": {
     "node": ">=20"
   },
@@ -31,7 +46,8 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prepublishOnly": "pnpm build"
   },
   "keywords": [
     "x402",
@@ -41,6 +57,14 @@
   ],
   "author": "",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/x402-fac.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/x402-fac/issues"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/x402-fac#readme",
   "packageManager": "pnpm@10.8.1",
   "lint-staged": {
     "*.ts": [
