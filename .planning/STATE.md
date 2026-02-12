@@ -144,6 +144,9 @@ Recent decisions affecting current work:
 | Sentry tracesSampleRate defaults 0.1 | 07-03 | 10% sampling prevents burning Sentry quota; was hardcoded 1.0 |
 | Health version via readFileSync at module load | 07-03 | process.env.npm_package_version only set by pnpm scripts, not node dist/index.js |
 | Config example shows production values | 07-03 | redis-prod host, auth, rate limits, JSON logs as production baseline |
+| getAddress() delegates to lucid.wallet().address() | 08-02 | Single line, no caching needed; wallet address rarely changes |
+| /supported try/catch on getAddress returns 500 | 08-02 | Generic error message; no internal details leaked |
+| FacilitatorClient tests mock globalThis.fetch | 08-02 | Real Response objects; no HTTP library dependency in tests |
 | Spread paymentRequiredOptions per request | 08-04 | Avoids shared state mutation between concurrent requests in payment gate |
 | HandlerFn type alias in tests | 08-04 | Bypasses Fastify this-context constraint without mock FastifyInstance |
 | FsBackend CID sanitization via hex regex | 08-03 | /^[a-f0-9]{64}$/ prevents path traversal on get() and has() |
@@ -172,7 +175,7 @@ None - Roadmap restructured. Phase 6 micropayment plans exist in `.planning/phas
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 08-03-PLAN.md (Storage Layer) -- Phase 8 wave 2 in progress
+Stopped at: Completed 08-02-PLAN.md (/supported endpoint + SDK tests) -- Phase 8 wave 2 in progress
 Resume file: Continue Phase 8 remaining plans (08-05, 08-06)
 
 ## Phase 1 Completion Summary
