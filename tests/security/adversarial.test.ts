@@ -82,7 +82,7 @@ const TEST_PROJECT_ID = 'test-project-id-secret';
 const TEST_SEED_PHRASE = 'test seed phrase for integration testing only';
 
 function createTestConfig(overrides?: Partial<Config>): Config {
-  return {
+  const base: Config = {
     server: { host: '0.0.0.0', port: 0 },
     logging: { level: 'error', pretty: false },
     rateLimit: { global: 1000, windowMs: 60000, sensitive: 100 },
@@ -101,8 +101,13 @@ function createTestConfig(overrides?: Partial<Config>): Config {
         feeMaxLovelace: 5000000,
       },
     },
-    ...overrides,
+    storage: {
+      backend: 'fs' as const,
+      fs: { dataDir: './data/files' },
+      ipfs: { apiUrl: 'http://localhost:5001' },
+    },
   };
+  return Object.assign(base, overrides);
 }
 
 function createVerifyPayload(overrides?: Record<string, unknown>) {

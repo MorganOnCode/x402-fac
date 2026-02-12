@@ -56,6 +56,11 @@ describe('Health Endpoint', () => {
         feeMaxLovelace: 5000000,
       },
     },
+    storage: {
+      backend: 'fs' as const,
+      fs: { dataDir: './data/files' },
+      ipfs: { apiUrl: 'http://localhost:5001' },
+    },
   };
 
   beforeAll(async () => {

@@ -40,6 +40,32 @@ export const ConfigSchema = z.object({
 
   // Chain provider configuration (Blockfrost, network, cache, reservation, Redis)
   chain: ChainConfigSchema,
+
+  // Storage backend configuration (optional -- defaults to filesystem)
+  storage: z
+    .object({
+      /** Storage backend type */
+      backend: z.enum(['fs', 'ipfs']).default('fs'),
+      /** Filesystem backend options */
+      fs: z
+        .object({
+          /** Directory for stored files (default: ./data/files) */
+          dataDir: z.string().default('./data/files'),
+        })
+        .default(() => ({ dataDir: './data/files' })),
+      /** IPFS backend options */
+      ipfs: z
+        .object({
+          /** IPFS Kubo HTTP API URL (default: http://localhost:5001) */
+          apiUrl: z.string().url().default('http://localhost:5001'),
+        })
+        .default(() => ({ apiUrl: 'http://localhost:5001' })),
+    })
+    .default(() => ({
+      backend: 'fs' as const,
+      fs: { dataDir: './data/files' },
+      ipfs: { apiUrl: 'http://localhost:5001' },
+    })),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

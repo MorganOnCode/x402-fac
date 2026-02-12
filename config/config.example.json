@@ -46,5 +46,14 @@
       "feeMinLovelace": 150000,
       "feeMaxLovelace": 5000000
     }
+  },
+  "storage": {
+    "backend": "fs",
+    "fs": {
+      "dataDir": "./data/files"
+    },
+    "ipfs": {
+      "apiUrl": "http://localhost:5001"
+    }
   }
 }
