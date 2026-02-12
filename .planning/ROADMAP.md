@@ -33,8 +33,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Settlement** - Client-signed transaction submission with on-chain confirmation
 - [x] **Phase 5: Stablecoins** - Multi-token support for USDM, DJED, iUSD
 - [x] **Phase 6: Security Hardening** - Close audit gaps, harden Phases 1-5 to production-ready standard
-- [ ] **Phase 7: Production Infrastructure** - CI/CD, Docker production config, monitoring, operational readiness
-- [ ] **Phase 8: Resource Server SDK + Reference Implementation** - End-to-end x402 flow with a high-value use case
+- [x] **Phase 7: Production Infrastructure** - CI/CD, Docker production config, monitoring, operational readiness
+- [x] **Phase 8: Resource Server SDK + Reference Implementation** - End-to-end x402 flow with a high-value use case
 - [ ] **Phase 9: Documentation & Publishing** - OpenAPI, architecture diagrams, deployment guide, npm publish
 
 ## Phase Details
@@ -342,16 +342,18 @@ Plans:
   5. Operational runbook covers common failure scenarios
 
 **Security Checks:**
-- [ ] CI pipeline doesn't expose secrets in logs
-- [ ] Production Docker image runs as non-root user
-- [ ] Redis authentication enforced in production config
-- [ ] No dev dependencies in production image
-- [ ] Health endpoint doesn't expose sensitive state
+- [x] CI pipeline doesn't expose secrets in logs — No secrets referenced in workflow; tests use mocked config; `permissions: contents: read`
+- [x] Production Docker image runs as non-root user — `USER appuser` (uid 1001) in Dockerfile production stage
+- [x] Redis authentication enforced in production config — `--requirepass` in compose production profile; config schema supports password/username
+- [x] No dev dependencies in production image — `pnpm install --frozen-lockfile --prod` in production stage
+- [x] Health endpoint doesn't expose sensitive state — Returns status, version, uptime, dependency health only; no config/secrets
 
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 07-01: TBD
+- [x] 07-01-PLAN.md — GitHub Actions CI/CD pipeline (lint, typecheck, test+coverage, build, dependency audit) (wave 1)
+- [x] 07-02-PLAN.md — Production Docker: multi-stage Dockerfile, .dockerignore, production compose profile (wave 1)
+- [x] 07-03-PLAN.md — Operational readiness: Sentry config, health version fix, config examples, runbook (wave 2)
 
 ### Phase 8: Resource Server SDK + Reference Implementation
 **Goal**: Build a resource server that demonstrates the complete x402 payment flow end-to-end with a high-value use case
@@ -381,15 +383,20 @@ Plans:
   5. SDK pattern is reusable for other resource server use cases
 
 **Security Checks:**
-- [ ] Resource server validates facilitator responses (don't trust blindly)
-- [ ] Payment confirmed before resource access (no race conditions)
-- [ ] Example code doesn't include real credentials
-- [ ] Rate limiting on resource endpoints
+- [x] Resource server validates facilitator responses (don't trust blindly) -- FacilitatorClient uses Zod schema validation on all responses (VerifyResponseSchema, SettleResponseSchema, StatusResponseSchema)
+- [x] Payment confirmed before resource access (no race conditions) -- Payment gate middleware settles BEFORE route handler runs (SECU-04); `reply.sent` check prevents double-execution
+- [x] Example code doesn't include real credentials -- Uses environment variables (BLOCKFROST_KEY, SEED_PHRASE); `requireEnv()` helper enforces at startup
+- [x] Rate limiting on resource endpoints -- POST /upload uses sensitive tier rate limit from config; global rate limit on all endpoints via @fastify/rate-limit
 
-**Plans**: TBD
+**Plans**: 6 plans in 4 waves
 
 Plans:
-- [ ] 08-01: TBD
+- [x] 08-01-PLAN.md -- SDK core: types, FacilitatorClient, 402 builder, barrel (wave 1)
+- [x] 08-02-PLAN.md -- ChainProvider.getAddress, GET /supported, SDK tests (wave 1)
+- [x] 08-03-PLAN.md -- Storage layer: interface, FsBackend, IpfsBackend, config (wave 2)
+- [x] 08-04-PLAN.md -- Payment gate middleware, Fastify type augmentation (wave 2)
+- [x] 08-05-PLAN.md -- POST /upload, GET /files/:cid routes, server integration (wave 3)
+- [x] 08-06-PLAN.md -- Example client, README, roadmap update (wave 4)
 
 ### Phase 9: Documentation & Publishing
 **Goal**: Document the system for public sharing and publish as open-source
@@ -437,8 +444,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 4. Settlement | 3/3 | Complete | 2026-02-06 |
 | 5. Stablecoins | 3/3 | Complete | 2026-02-08 |
 | 6. Security Hardening | 4/4 | Complete | 2026-02-11 |
-| 7. Production Infrastructure | 0/? | Not started | - |
-| 8. Resource Server SDK | 0/? | Not started | - |
+| 7. Production Infrastructure | 3/3 | Complete | 2026-02-12 |
+| 8. Resource Server SDK | 6/6 | Complete | 2026-02-12 |
 | 9. Documentation & Publishing | 0/? | Not started | - |
 
 ---
