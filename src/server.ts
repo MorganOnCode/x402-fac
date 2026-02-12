@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import type { FastifyInstance } from 'fastify';
 import fastify from 'fastify';
@@ -10,11 +11,14 @@ import { createChainProvider, createRedisClient, disconnectRedis } from './chain
 import type { Config } from './config/index.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { requestLoggerPlugin } from './plugins/request-logger.js';
+import { downloadRoutesPlugin } from './routes/download.js';
 import { healthRoutesPlugin } from './routes/health.js';
 import { settleRoutesPlugin } from './routes/settle.js';
 import { statusRoutesPlugin } from './routes/status.js';
 import { supportedRoutesPlugin } from './routes/supported.js';
+import { uploadRoutesPlugin } from './routes/upload.js';
 import { verifyRoutesPlugin } from './routes/verify.js';
+import { createStorageBackend } from './storage/index.js';
 
 // Import types to ensure augmentation is loaded
 import './types/index.js';
@@ -71,8 +75,18 @@ export async function createServer(options: CreateServerOptions): Promise<Fastif
   await server.register(cors, {
     origin: isDev ? true : false,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Request-ID',
+      'Payment-Signature',
+      'Payment-Required',
+    ],
+    exposedHeaders: ['Payment-Required', 'X-Payment-Response'],
   });
+
+  // Multipart support (file uploads)
+  await server.register(multipart);
 
   // Custom plugins
   await server.register(errorHandlerPlugin, { isDev });
@@ -111,12 +125,19 @@ export async function createServer(options: CreateServerOptions): Promise<Fastif
     throw error;
   }
 
+  // ---- Storage layer initialization ----
+  const storage = createStorageBackend(config.storage);
+  server.decorate('storage', storage);
+  server.log.info({ backend: config.storage.backend }, 'Storage layer initialized');
+
   // Routes
   await server.register(healthRoutesPlugin);
   await server.register(verifyRoutesPlugin);
   await server.register(settleRoutesPlugin);
   await server.register(statusRoutesPlugin);
   await server.register(supportedRoutesPlugin);
+  await server.register(uploadRoutesPlugin);
+  await server.register(downloadRoutesPlugin);
 
   return server;
 }

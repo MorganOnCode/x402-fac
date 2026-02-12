@@ -5,6 +5,8 @@ import type { FastifyPluginCallback } from 'fastify';
 import fp from 'fastify-plugin';
 import type Redis from 'ioredis';
 
+import type { StorageBackend } from '../storage/types.js';
+
 // Read version once at startup (not on every request)
 const packageJson = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf-8')) as {
   version: string;
@@ -45,23 +47,38 @@ async function checkRedis(redis?: Redis): Promise<DependencyStatus> {
   }
 }
 
-async function checkIpfs(): Promise<DependencyStatus> {
-  // Placeholder - IPFS check will be implemented in Phase 7
-  // For now, return 'up' if not configured
-  return { status: 'up', latency: 0 };
+async function checkStorage(storage?: StorageBackend): Promise<DependencyStatus> {
+  if (!storage) {
+    // Not configured yet -- return up (placeholder behavior)
+    return { status: 'up', latency: 0 };
+  }
+  const start = Date.now();
+  try {
+    const healthy = await storage.healthy();
+    return {
+      status: healthy ? 'up' : 'down',
+      latency: Date.now() - start,
+    };
+  } catch (err) {
+    return {
+      status: 'down',
+      latency: Date.now() - start,
+      error: err instanceof Error ? err.message : 'Unknown error',
+    };
+  }
 }
 
 const healthRoutes: FastifyPluginCallback = (fastify, _options, done) => {
   fastify.get<{ Reply: HealthResponse }>('/health', async (_request, reply) => {
     // Run dependency checks in parallel
-    const [redisStatus, ipfsStatus] = await Promise.all([
+    const [redisStatus, storageStatus] = await Promise.all([
       checkRedis(fastify.redis).catch(
         (err): DependencyStatus => ({
           status: 'down',
           error: err instanceof Error ? err.message : 'Unknown error',
         })
       ),
-      checkIpfs().catch(
+      checkStorage(fastify.storage).catch(
         (err): DependencyStatus => ({
           status: 'down',
           error: err instanceof Error ? err.message : 'Unknown error',
@@ -71,7 +88,7 @@ const healthRoutes: FastifyPluginCallback = (fastify, _options, done) => {
 
     const dependencies: Record<string, DependencyStatus> = {
       redis: redisStatus,
-      ipfs: ipfsStatus,
+      storage: storageStatus,
     };
 
     // Determine overall status
