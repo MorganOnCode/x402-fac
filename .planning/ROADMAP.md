@@ -404,14 +404,13 @@ Plans:
 **Requirements**: DOCS-01, DOCS-02, DOCS-03
 
 **Deliverables:**
-- GET /supported endpoint implementation
 - OpenAPI/Swagger specification for all endpoints
-- Architecture diagrams (Mermaid or D2) — component relationships, data flow, payment flow
+- Architecture diagrams (Mermaid) — component relationships, data flow, payment flow
 - README with getting started guide and quick-start example
 - Deployment guide (Docker, configuration, testnet setup)
 - Cardano x402 positioning document (why Cardano for high-value operations, how it complements EVM L2 micropayments)
-- npm package publication (if applicable)
-- License selection and CONTRIBUTING.md
+- npm package publication setup (dual entry points, exports map, files whitelist)
+- License (Apache-2.0), CONTRIBUTING.md, and SECURITY.md
 
 **Success Criteria** (what must be TRUE):
   1. GET /supported returns supported chains, schemes, and facilitator capabilities
@@ -426,10 +425,15 @@ Plans:
 - [ ] SECURITY.md with responsible disclosure process
 - [ ] License reviewed for liability implications
 
-**Plans**: TBD
+**Plans**: 6 plans in 3 waves
 
 Plans:
-- [ ] 09-01: TBD
+- [ ] 09-01-PLAN.md — OpenAPI/Swagger integration (@fastify/swagger + fastify-type-provider-zod) (wave 1)
+- [ ] 09-02-PLAN.md — README, LICENSE (Apache-2.0), CONTRIBUTING.md, SECURITY.md (wave 1)
+- [ ] 09-03-PLAN.md — Architecture diagrams (4 Mermaid diagrams) (wave 1)
+- [ ] 09-04-PLAN.md — npm publishing setup (tsup dual entry, exports map, files whitelist) (wave 2)
+- [ ] 09-05-PLAN.md — Deployment guide and Cardano x402 positioning document (wave 1)
+- [ ] 09-06-PLAN.md — Final verification, security checklist closure, ROADMAP update (wave 3)
 
 ## Progress
 
@@ -446,7 +450,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 6. Security Hardening | 4/4 | Complete | 2026-02-11 |
 | 7. Production Infrastructure | 3/3 | Complete | 2026-02-12 |
 | 8. Resource Server SDK | 6/6 | Complete | 2026-02-12 |
-| 9. Documentation & Publishing | 0/? | Not started | - |
+| 9. Documentation & Publishing | 0/6 | Planned | - |
 
 ---
 *Roadmap created: 2026-02-04*
@@ -457,5 +461,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 *Phase 6 pivoted from "Batching" to "Micropayment Strategy": 2026-02-10*
 *Phase 6 replaced: "Micropayment Strategy" dropped, roadmap restructured: 2026-02-11*
 *Reason: Cardano min UTXO floor accepted as market positioning (high-value ops), not a problem to solve*
+*Phase 9 planned: 2026-02-12*
 *Depth: comprehensive (9 phases)*
 *Requirements: 27+ v1 mapped (foundation requirements added)*
