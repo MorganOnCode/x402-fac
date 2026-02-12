@@ -8,8 +8,19 @@ import { healthRoutesPlugin } from '../../../src/routes/health.js';
  * Helper to create a minimal Fastify server with health routes.
  * Optionally decorates with a Redis mock for controlling ping behavior.
  */
+/** Mock storage backend that is always healthy by default */
+function createMockStorage(healthy = true) {
+  return {
+    put: vi.fn(),
+    get: vi.fn(),
+    has: vi.fn(),
+    healthy: vi.fn().mockResolvedValue(healthy),
+  };
+}
+
 async function createHealthServer(options?: {
   redis?: { ping: ReturnType<typeof vi.fn> } | Record<string, unknown>;
+  storage?: { healthy: ReturnType<typeof vi.fn> } | Record<string, unknown>;
 }): Promise<FastifyInstance> {
   const server = fastify({ logger: false });
 
@@ -18,6 +29,9 @@ async function createHealthServer(options?: {
   if (options?.redis) {
     server.decorate('redis', options.redis as never);
   }
+
+  // Decorate with storage (default: healthy mock)
+  server.decorate('storage', (options?.storage ?? createMockStorage()) as never);
 
   await server.register(healthRoutesPlugin);
   await server.ready();
@@ -54,16 +68,16 @@ describe('Health Endpoint', () => {
       expect(body.dependencies.redis.latency).toBeGreaterThanOrEqual(0);
     });
 
-    it('should report IPFS as up (placeholder)', async () => {
+    it('should report Storage as up with latency', async () => {
       const response = await server.inject({ method: 'GET', url: '/health' });
 
       const body = response.json();
-      expect(body.dependencies.ipfs.status).toBe('up');
-      expect(body.dependencies.ipfs.latency).toBe(0);
+      expect(body.dependencies.storage.status).toBe('up');
+      expect(body.dependencies.storage.latency).toBeGreaterThanOrEqual(0);
     });
   });
 
-  describe('Redis down, IPFS up (degraded)', () => {
+  describe('Redis down, Storage up (degraded)', () => {
     beforeEach(async () => {
       server = await createHealthServer({
         redis: { ping: vi.fn().mockRejectedValue(new Error('Connection refused')) },
@@ -86,11 +100,11 @@ describe('Health Endpoint', () => {
       expect(body.dependencies.redis.error).toBe('Connection refused');
     });
 
-    it('should report IPFS as up even when Redis is down', async () => {
+    it('should report Storage as up even when Redis is down', async () => {
       const response = await server.inject({ method: 'GET', url: '/health' });
 
       const body = response.json();
-      expect(body.dependencies.ipfs.status).toBe('up');
+      expect(body.dependencies.storage.status).toBe('up');
     });
   });
 
@@ -185,7 +199,7 @@ describe('Health Endpoint', () => {
 
       const body = response.json();
       expect(body.dependencies).toHaveProperty('redis');
-      expect(body.dependencies).toHaveProperty('ipfs');
+      expect(body.dependencies).toHaveProperty('storage');
     });
   });
 

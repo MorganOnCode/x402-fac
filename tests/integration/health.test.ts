@@ -95,7 +95,7 @@ describe('Health Endpoint', () => {
 
     const body = JSON.parse(response.body);
     expect(body.dependencies.redis).toBeDefined();
-    expect(body.dependencies.ipfs).toBeDefined();
+    expect(body.dependencies.storage).toBeDefined();
     expect(body.dependencies.redis.status).toBe('up');
   });
 
