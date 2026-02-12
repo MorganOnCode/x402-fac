@@ -4,8 +4,15 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import type { FastifyInstance } from 'fastify';
 import fastify from 'fastify';
+import {
+  jsonSchemaTransform,
+  serializerCompiler,
+  validatorCompiler,
+} from 'fastify-type-provider-zod';
 
 import { createChainProvider, createRedisClient, disconnectRedis } from './chain/index.js';
 import type { Config } from './config/index.js';
@@ -54,6 +61,10 @@ export async function createServer(options: CreateServerOptions): Promise<Fastif
     bodyLimit: 51200,
   });
 
+  // Zod type provider compilers (enables Zod schemas in route schema declarations)
+  server.setValidatorCompiler(validatorCompiler);
+  server.setSerializerCompiler(serializerCompiler);
+
   // Decorate server with config for access in routes
   server.decorate('config', config);
 
@@ -91,6 +102,31 @@ export async function createServer(options: CreateServerOptions): Promise<Fastif
   // Custom plugins
   await server.register(errorHandlerPlugin, { isDev });
   await server.register(requestLoggerPlugin, { isDev });
+
+  // ---- OpenAPI documentation ----
+  await server.register(swagger, {
+    openapi: {
+      openapi: '3.0.3',
+      info: {
+        title: 'x402 Cardano Payment Facilitator',
+        description:
+          'Cardano x402 payment facilitator API for verifying and settling blockchain payments.',
+        version: '1.0.0',
+        license: { name: 'Apache-2.0', url: 'https://www.apache.org/licenses/LICENSE-2.0' },
+      },
+      servers: [{ url: 'http://localhost:3000', description: 'Development' }],
+      tags: [
+        { name: 'Health', description: 'Server health and capabilities' },
+        { name: 'Facilitator', description: 'Payment verification and settlement' },
+        { name: 'Storage', description: 'File upload and download (reference implementation)' },
+      ],
+    },
+    transform: jsonSchemaTransform,
+  });
+
+  await server.register(swaggerUi, {
+    routePrefix: '/docs',
+  });
 
   // ---- Chain layer initialization ----
   try {
